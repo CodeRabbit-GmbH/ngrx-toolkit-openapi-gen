@@ -1,0 +1,74 @@
+openapi: 3.0.1
+info:
+  title: Reference Test API
+  version: 1.0.0
+paths:
+  /api/orders:
+    get:
+      tags:
+        - Order
+      operationId: getOrders
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+  /api/customers:
+    get:
+      tags:
+        - Customer
+      operationId: getCustomers
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+components:
+  schemas:
+    Order:
+      type: object
+      required:
+        - id
+        - customer
+      properties:
+        id:
+          type: string
+        customer:
+          $ref: '#/components/schemas/Customer'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+    Customer:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+    OrderItem:
+      type: object
+      required:
+        - productId
+        - quantity
+      properties:
+        productId:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: number
+

@@ -1,0 +1,138 @@
+openapi: 3.0.1
+info:
+  title: Sample Flight API
+  version: 1.0.0
+paths:
+  /api/flights:
+    get:
+      tags:
+        - Flight
+      operationId: getFlights
+      summary: List available flights
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Flight'
+    post:
+      tags:
+        - Flight
+      operationId: createFlight
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Flight'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flight'
+  /api/flights/{id}:
+    get:
+      tags:
+        - Flight
+      operationId: getFlight
+      summary: Retrieve single flight
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flight'
+    delete:
+      tags:
+        - Flight
+      operationId: deleteFlight
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+  /api/bookings:
+    get:
+      tags:
+        - Booking
+      operationId: getBookings
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Booking'
+components:
+  schemas:
+    Flight:
+      type: object
+      required:
+        - id
+        - number
+        - status
+      properties:
+        id:
+          type: string
+        number:
+          type: string
+        status:
+          type: string
+          enum: ['scheduled', 'delayed']
+        from:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          properties:
+            gate:
+              type: string
+            terminal:
+              type: string
+          additionalProperties: false
+        createdAt:
+          type: string
+          format: date-time
+        tags:
+          type: array
+          items:
+            type: string
+        booking:
+          $ref: '#/components/schemas/Booking'
+          nullable: true
+      description: Flight entity with schedule information.
+    Booking:
+      type: object
+      required:
+        - id
+        - passenger
+      properties:
+        id:
+          type: string
+        passenger:
+          type: string
+        status:
+          type: string
+          enum:
+            - pending
+            - confirmed
+        flight:
+          $ref: '#/components/schemas/Flight'
+      description: Booking entity referencing passengers.

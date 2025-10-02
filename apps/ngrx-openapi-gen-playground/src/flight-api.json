@@ -1,0 +1,1054 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Flight API",
+    "version": "v1"
+  },
+  "paths": {
+    "/api/Airport": {
+      "get": {
+        "tags": [
+          "Airport"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Booking": {
+      "get": {
+        "tags": [
+          "Booking"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "flightId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "passengerId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FlightBooking"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FlightBooking"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FlightBooking"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Booking"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/FlightBooking"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FlightBooking"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FlightBooking"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/FlightBooking"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlightBooking"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlightBooking"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlightBooking"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Booking/{id}": {
+      "get": {
+        "tags": [
+          "Booking"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlightBooking"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlightBooking"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlightBooking"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Booking"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/FlightBooking"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FlightBooking"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FlightBooking"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/FlightBooking"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Booking"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlightBooking"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlightBooking"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlightBooking"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Error": {
+      "get": {
+        "tags": [
+          "Error"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Error"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Error"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Error"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Error"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/Flight": {
+      "get": {
+        "tags": [
+          "Flight"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Flight"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Flight"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Flight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Flight"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Flight"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Flight"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Flight"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Flight"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Flight"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Flight"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Flight"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Flight/{id}": {
+      "get": {
+        "tags": [
+          "Flight"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Flight"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Flight"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Flight"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Flight"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Flight"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Flight"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Flight"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Flight"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Flight"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Flight"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Flight"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Flight"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Passenger/me": {
+      "get": {
+        "tags": [
+          "Passenger"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Passenger": {
+      "get": {
+        "tags": [
+          "Passenger"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "firstName",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Passenger"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Passenger"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Passenger"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Passenger"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Passenger"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Passenger"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Passenger"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Passenger"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Passenger"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Passenger"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Passenger"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Passenger/{id}": {
+      "get": {
+        "tags": [
+          "Passenger"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Passenger"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Passenger"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Passenger"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Passenger"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Passenger"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Passenger"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Passenger"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Passenger"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Passenger"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Passenger"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Passenger"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Passenger"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Passenger": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "bonusMiles": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "passengerStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "flightBookings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FlightBooking"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Flight": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "from": {
+            "type": "string",
+            "nullable": true
+          },
+          "to": {
+            "type": "string",
+            "nullable": true
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "delayed": {
+            "type": "boolean"
+          },
+          "flightBookings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FlightBooking"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "FlightBooking": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "passengerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "flightId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "bookingDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "flightClass": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "seat": {
+            "type": "string",
+            "nullable": true
+          },
+          "passenger": {
+            "$ref": "#/components/schemas/Passenger"
+          },
+          "flight": {
+            "$ref": "#/components/schemas/Flight"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

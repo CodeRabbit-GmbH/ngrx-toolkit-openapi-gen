@@ -1,0 +1,39 @@
+openapi: 3.0.3
+info:
+  title: Primitive Array API
+  version: 1.0.0
+  description: API that returns primitive arrays (e.g., list of airport codes)
+
+paths:
+  /api/airports:
+    get:
+      tags:
+        - Airport
+      operationId: getAirports
+      summary: Get all airport codes
+      responses:
+        '200':
+          description: List of airport codes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+  /api/categories:
+    get:
+      tags:
+        - Category
+      operationId: getCategories
+      summary: Get all category IDs
+      responses:
+        '200':
+          description: List of category IDs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+

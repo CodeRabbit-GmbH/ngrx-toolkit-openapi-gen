@@ -1,0 +1,39 @@
+openapi: 3.0.1
+info:
+  title: Nullable Test API
+  version: 1.0.0
+paths:
+  /api/products:
+    get:
+      tags:
+        - Product
+      operationId: getProducts
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+components:
+  schemas:
+    Product:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        description:
+          type: string
+          nullable: true
+        price:
+          type: number
+          nullable: true
+        status:
+          type: string
+          enum: ['active', 'inactive']
+          nullable: true
+

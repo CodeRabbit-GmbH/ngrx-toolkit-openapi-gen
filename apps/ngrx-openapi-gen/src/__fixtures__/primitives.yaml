@@ -1,0 +1,39 @@
+openapi: 3.0.1
+info:
+  title: Primitives Test API
+  version: 1.0.0
+paths:
+  /api/items:
+    get:
+      tags:
+        - Item
+      operationId: getItems
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+components:
+  schemas:
+    Item:
+      type: object
+      required:
+        - id
+        - name
+        - count
+        - active
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        count:
+          type: integer
+        active:
+          type: boolean
+      description: Simple item with primitive types
+

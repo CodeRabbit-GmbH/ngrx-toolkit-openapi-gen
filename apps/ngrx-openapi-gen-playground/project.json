@@ -1,0 +1,106 @@
+{
+  "name": "ngrx-openapi-gen-playground",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "apps/ngrx-openapi-gen-playground/src",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/ngrx-openapi-gen-playground",
+        "browser": "apps/ngrx-openapi-gen-playground/src/main.ts",
+        "polyfills": ["zone.js"],
+        "tsConfig": "apps/ngrx-openapi-gen-playground/tsconfig.app.json",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/ngrx-openapi-gen-playground/public"
+          }
+        ],
+        "styles": ["apps/ngrx-openapi-gen-playground/src/styles.css"]
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "1mb",
+              "maximumError": "2mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "4kb",
+              "maximumError": "8kb"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "configurations": {
+        "production": {
+          "buildTarget": "ngrx-openapi-gen-playground:build:production"
+        },
+        "development": {
+          "buildTarget": "ngrx-openapi-gen-playground:build:development"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "extract-i18n": {
+      "executor": "@angular/build:extract-i18n",
+      "options": {
+        "buildTarget": "ngrx-openapi-gen-playground:build"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/ngrx-openapi-gen-playground/jest.config.ts",
+        "tsConfig": "apps/ngrx-openapi-gen-playground/tsconfig.spec.json"
+      }
+    },
+    "serve-static": {
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "ngrx-openapi-gen-playground:build",
+        "staticFilePath": "dist/apps/ngrx-openapi-gen-playground/browser",
+        "spa": true
+      }
+    },
+    "generate-stores": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "npx nx build ngrx-openapi-gen",
+          "node dist/apps/ngrx-openapi-gen/apps/ngrx-openapi-gen/src/main.js -i apps/ngrx-openapi-gen-playground/src/api.yaml -o apps/ngrx-openapi-gen-playground/src/app/generated --api-name TasksApi",
+          "node dist/apps/ngrx-openapi-gen/apps/ngrx-openapi-gen/src/main.js -i apps/ngrx-openapi-gen-playground/src/flight-api.json -o apps/ngrx-openapi-gen-playground/src/app/generated --api-name FlightApi"
+        ],
+        "parallel": false
+      }
+    },
+    "e2e": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx playwright test"
+      }
+    }
+  }
+}

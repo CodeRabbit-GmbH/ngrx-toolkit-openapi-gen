@@ -1,0 +1,54 @@
+{
+  "name": "ngrx-toolkit-openapi-gen",
+  "version": "0.0.0",
+  "description": "Generate NgRx Signal Stores with httpResource and httpMutation from OpenAPI specifications",
+  "author": "wolfmanfx",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wolfmanfx/ngrx-toolkit-openapi-gen.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wolfmanfx/ngrx-toolkit-openapi-gen/issues"
+  },
+  "homepage": "https://github.com/wolfmanfx/ngrx-toolkit-openapi-gen#readme",
+  "keywords": [
+    "ngrx",
+    "angular",
+    "signals",
+    "openapi",
+    "swagger",
+    "code-generator",
+    "signal-store",
+    "ngrx-toolkit"
+  ],
+  "bin": {
+    "ngrx-openapi-gen": "./main.js"
+  },
+  "main": "./main.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "peerDependencies": {
+    "@angular-architects/ngrx-toolkit": ">=18.0.0",
+    "@angular/common": ">=18.0.0",
+    "@angular/core": ">=18.0.0",
+    "@ngrx/signals": ">=18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@angular-architects/ngrx-toolkit": {
+      "optional": true
+    },
+    "@angular/common": {
+      "optional": true
+    },
+    "@angular/core": {
+      "optional": true
+    },
+    "@ngrx/signals": {
+      "optional": true
+    }
+  }
+}
+

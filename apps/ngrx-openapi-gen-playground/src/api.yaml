@@ -1,0 +1,501 @@
+openapi: 3.0.1
+info:
+  title: Tasks API
+  version: 1.0.0
+  description: A Tasks API with Projects and Users for integration testing
+servers:
+  - url: http://localhost:4200
+paths:
+  # ==================== TASKS ====================
+  /api/tasks:
+    get:
+      tags:
+        - Task
+      operationId: getTasks
+      summary: Get all tasks
+      parameters:
+        - name: status
+          in: query
+          description: Filter by status
+          schema:
+            type: string
+            enum: ['pending', 'completed', 'in_progress']
+        - name: limit
+          in: query
+          description: Limit the number of results
+          schema:
+            type: integer
+        - name: projectId
+          in: query
+          description: Filter by project
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+    post:
+      tags:
+        - Task
+      operationId: createTask
+      summary: Create a new task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+  /api/tasks/{id}:
+    get:
+      tags:
+        - Task
+      operationId: getTask
+      summary: Get a task by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          description: Task not found
+    put:
+      tags:
+        - Task
+      operationId: updateTask
+      summary: Update a task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+    delete:
+      tags:
+        - Task
+      operationId: deleteTask
+      summary: Delete a task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+
+  # ==================== PROJECTS ====================
+  /api/projects:
+    get:
+      tags:
+        - Project
+      operationId: getProjects
+      summary: Get all projects
+      parameters:
+        - name: status
+          in: query
+          description: Filter by status
+          schema:
+            type: string
+            enum: ['active', 'archived', 'draft']
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+    post:
+      tags:
+        - Project
+      operationId: createProject
+      summary: Create a new project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+  /api/projects/{id}:
+    get:
+      tags:
+        - Project
+      operationId: getProject
+      summary: Get a project by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          description: Project not found
+    put:
+      tags:
+        - Project
+      operationId: updateProject
+      summary: Update a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+    delete:
+      tags:
+        - Project
+      operationId: deleteProject
+      summary: Delete a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+
+  # ==================== USERS ====================
+  /api/users:
+    get:
+      tags:
+        - User
+      operationId: getUsers
+      summary: Get all users
+      parameters:
+        - name: role
+          in: query
+          description: Filter by role
+          schema:
+            type: string
+            enum: ['admin', 'member', 'viewer']
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    post:
+      tags:
+        - User
+      operationId: createUser
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /api/users/{id}:
+    get:
+      tags:
+        - User
+      operationId: getUser
+      summary: Get a user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+    put:
+      tags:
+        - User
+      operationId: updateUser
+      summary: Update a user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    delete:
+      tags:
+        - User
+      operationId: deleteUser
+      summary: Delete a user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+
+components:
+  schemas:
+    # ==================== TASK SCHEMAS ====================
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - status
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+        title:
+          type: string
+          description: Task title
+        description:
+          type: string
+          description: Task description
+        status:
+          type: string
+          enum: ['pending', 'completed', 'in_progress']
+          description: Task status
+        projectId:
+          type: string
+          description: Associated project ID
+        assigneeId:
+          type: string
+          description: Assigned user ID
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+    CreateTaskRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: ['pending', 'completed', 'in_progress']
+          default: 'pending'
+        projectId:
+          type: string
+        assigneeId:
+          type: string
+    UpdateTaskRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: ['pending', 'completed', 'in_progress']
+        projectId:
+          type: string
+        assigneeId:
+          type: string
+
+    # ==================== PROJECT SCHEMAS ====================
+    Project:
+      type: object
+      required:
+        - id
+        - name
+        - status
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+        name:
+          type: string
+          description: Project name
+        description:
+          type: string
+          description: Project description
+        status:
+          type: string
+          enum: ['active', 'archived', 'draft']
+          description: Project status
+        ownerId:
+          type: string
+          description: Owner user ID
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+    CreateProjectRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: ['active', 'archived', 'draft']
+          default: 'draft'
+        ownerId:
+          type: string
+    UpdateProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: ['active', 'archived', 'draft']
+        ownerId:
+          type: string
+
+    # ==================== USER SCHEMAS ====================
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - name
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+        email:
+          type: string
+          format: email
+          description: User email
+        name:
+          type: string
+          description: Display name
+        role:
+          type: string
+          enum: ['admin', 'member', 'viewer']
+          description: User role
+        avatarUrl:
+          type: string
+          description: Avatar image URL
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - name
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        role:
+          type: string
+          enum: ['admin', 'member', 'viewer']
+          default: 'member'
+        avatarUrl:
+          type: string
+    UpdateUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        role:
+          type: string
+          enum: ['admin', 'member', 'viewer']
+        avatarUrl:
+          type: string

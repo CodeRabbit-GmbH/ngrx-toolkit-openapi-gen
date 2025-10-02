@@ -1,0 +1,114 @@
+openapi: 3.0.1
+info:
+  title: CRUD Test API
+  version: 1.0.0
+paths:
+  /api/tasks:
+    get:
+      tags:
+        - Task
+      operationId: getTasks
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+    post:
+      tags:
+        - Task
+      operationId: createTask
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Task'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+  /api/tasks/{id}:
+    get:
+      tags:
+        - Task
+      operationId: getTask
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+    put:
+      tags:
+        - Task
+      operationId: updateTask
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Task'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+    delete:
+      tags:
+        - Task
+      operationId: deleteTask
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+components:
+  schemas:
+    Task:
+      type: object
+      required:
+        - id
+        - title
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        completed:
+          type: boolean
+
