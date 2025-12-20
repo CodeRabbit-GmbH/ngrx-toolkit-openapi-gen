@@ -2,7 +2,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
-const isGitHubPages = process.env.GITHUB_ACTIONS === 'true';
+const isLocalDev = process.env.NODE_ENV === 'development';
 const repoName = 'ngrx-toolkit-openapi-gen';
 
 const config: Config = {
@@ -14,12 +14,10 @@ const config: Config = {
     v4: true,
   },
 
-  url: isGitHubPages
-    ? `https://wolfmanfx.github.io`
-    : 'https://ngrx-openapi-gen.dev',
-  baseUrl: isGitHubPages ? `/${repoName}/` : '/',
+  url: `https://coderabbit-gmbh.github.io`,
+  baseUrl: isLocalDev ? '/' : `/${repoName}/`,
 
-  organizationName: 'wolfmanfx',
+  organizationName: 'CodeRabbit-GmbH',
   projectName: repoName,
   trailingSlash: false,
 
@@ -73,7 +71,7 @@ const config: Config = {
           label: 'Documentation',
         },
         {
-          href: `https://github.com/wolfmanfx/${repoName}`,
+          href: `https://github.com/CodeRabbit-GmbH/${repoName}`,
           label: 'GitHub',
           position: 'right',
         },

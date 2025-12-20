@@ -11,9 +11,10 @@
     "playground:build": "npx nx build ngrx-openapi-gen-playground",
     "playground:generate": "npx nx run ngrx-openapi-gen-playground:generate-stores",
     "lint": "npx nx lint ngrx-openapi-gen",
-    "docs:start": "cd docs-site && npm start",
-    "docs:build": "cd docs-site && npm run build",
+    "docs:start": "cd docs-site && npm install && npm start",
+    "docs:build": "cd docs-site && npm install && npm run build",
     "docs:serve": "cd docs-site && npm run serve",
+    "docs:deploy": "cd docs-site && npm install && npx docusaurus deploy",
     "release": "npx nx release",
     "release:dry-run": "npx nx release --dry-run"
   },
