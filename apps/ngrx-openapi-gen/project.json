@@ -25,6 +25,9 @@
           "sourcemap": true,
           "outExtension": {
             ".js": ".js"
+          },
+          "banner": {
+            "js": "#!/usr/bin/env node"
           }
         }
       },
@@ -35,6 +38,9 @@
             "sourcemap": false,
             "outExtension": {
               ".js": ".js"
+            },
+            "banner": {
+              "js": "#!/usr/bin/env node"
             }
           }
         }
