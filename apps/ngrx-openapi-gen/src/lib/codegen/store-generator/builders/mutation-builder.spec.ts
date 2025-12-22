@@ -13,6 +13,8 @@ describe('mutation-builder', () => {
   const mockContext: BuilderContext = {
     basePathToken: 'API_BASE_PATH',
     modelSuffix: 'Model',
+    zodValidation: false,
+    preferEntityNames: false,
     renderType: (schema: unknown) => {
       const s = schema as { $ref?: string; type?: string };
       if (s?.$ref) {
@@ -23,60 +25,110 @@ describe('mutation-builder', () => {
     },
   };
 
+  const entityNamesContext: BuilderContext = {
+    ...mockContext,
+    preferEntityNames: true,
+  };
+
   describe('buildMutationMethodName', () => {
-    it('returns createEntity for POST', () => {
-      const op: OperationSpec = {
-        operationId: 'createFlight',
-        method: 'post',
-        path: '/api/flights',
-        kind: 'mutation',
-        entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-        pathParams: [],
-        queryParams: [],
-        successStatusCodes: ['201'],
-      };
-      expect(buildMutationMethodName(op)).toBe('createFlight');
+    describe('default behavior (preferEntityNames: false)', () => {
+      it('uses operationId when present', () => {
+        const op: OperationSpec = {
+          operationId: 'createFlight',
+          method: 'post',
+          path: '/api/flights',
+          kind: 'mutation',
+          entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
+          pathParams: [],
+          queryParams: [],
+          successStatusCodes: ['201'],
+        };
+        expect(buildMutationMethodName(op, mockContext)).toBe('createFlight');
+      });
+
+      it('falls back to entity-based name when no operationId', () => {
+        const op: OperationSpec = {
+          operationId: '',
+          method: 'delete',
+          path: '/api/flights/{id}',
+          kind: 'mutation',
+          entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
+          pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+          queryParams: [],
+          successStatusCodes: ['204'],
+        };
+        expect(buildMutationMethodName(op, mockContext)).toBe('removeFlight');
+      });
+
+      it('falls back to path-based name when no operationId or entity', () => {
+        const op: OperationSpec = {
+          operationId: '',
+          method: 'post',
+          path: '/api/actions',
+          kind: 'mutation',
+          pathParams: [],
+          queryParams: [],
+          successStatusCodes: ['200'],
+        };
+        expect(buildMutationMethodName(op, mockContext)).toBe('postApiActions');
+      });
     });
 
-    it('returns updateEntity for PUT', () => {
-      const op: OperationSpec = {
-        operationId: 'updateFlight',
-        method: 'put',
-        path: '/api/flights/{id}',
-        kind: 'mutation',
-        entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-        pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
-        queryParams: [],
-        successStatusCodes: ['200'],
-      };
-      expect(buildMutationMethodName(op)).toBe('updateFlight');
-    });
+    describe('preferEntityNames: true', () => {
+      it('returns createEntity for POST', () => {
+        const op: OperationSpec = {
+          operationId: 'addFlight',
+          method: 'post',
+          path: '/api/flights',
+          kind: 'mutation',
+          entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
+          pathParams: [],
+          queryParams: [],
+          successStatusCodes: ['201'],
+        };
+        expect(buildMutationMethodName(op, entityNamesContext)).toBe('createFlight');
+      });
 
-    it('returns removeEntity for DELETE', () => {
-      const op: OperationSpec = {
-        operationId: 'deleteFlight',
-        method: 'delete',
-        path: '/api/flights/{id}',
-        kind: 'mutation',
-        entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-        pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
-        queryParams: [],
-        successStatusCodes: ['204'],
-      };
-      expect(buildMutationMethodName(op)).toBe('removeFlight');
-    });
+      it('returns updateEntity for PUT', () => {
+        const op: OperationSpec = {
+          operationId: 'modifyFlight',
+          method: 'put',
+          path: '/api/flights/{id}',
+          kind: 'mutation',
+          entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
+          pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+          queryParams: [],
+          successStatusCodes: ['200'],
+        };
+        expect(buildMutationMethodName(op, entityNamesContext)).toBe('updateFlight');
+      });
 
-    it('returns camelCase operationId when no entity', () => {
-      const op: OperationSpec = {
-        operationId: 'performAction',
-        method: 'post',
-        path: '/api/actions',
-        kind: 'mutation',
-        pathParams: [],
-        queryParams: [],
-        successStatusCodes: ['200'],
-      };
-      expect(buildMutationMethodName(op)).toBe('performAction');
+      it('returns removeEntity for DELETE', () => {
+        const op: OperationSpec = {
+          operationId: 'deleteFlight',
+          method: 'delete',
+          path: '/api/flights/{id}',
+          kind: 'mutation',
+          entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
+          pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+          queryParams: [],
+          successStatusCodes: ['204'],
+        };
+        expect(buildMutationMethodName(op, entityNamesContext)).toBe('removeFlight');
+      });
+
+      it('falls back to operationId when no entity', () => {
+        const op: OperationSpec = {
+          operationId: 'performAction',
+          method: 'post',
+          path: '/api/actions',
+          kind: 'mutation',
+          pathParams: [],
+          queryParams: [],
+          successStatusCodes: ['200'],
+        };
+        expect(buildMutationMethodName(op, entityNamesContext)).toBe('performAction');
+      });
     });
   });
 
@@ -272,7 +324,7 @@ describe('mutation-builder', () => {
       };
 
       const result = buildMutation(op, 'flights', mockContext);
-      expect(result.name).toBe('removeFlight');
+      expect(result.name).toBe('deleteFlight');
       expect(result.value).toContain("method: 'DELETE'");
       expect(result.value).not.toContain('body:');
       expect(result.value).toContain('${input.id}');
@@ -318,7 +370,7 @@ describe('mutation-builder', () => {
       const result = buildWithMutations([createOp, deleteOp], [collectionOp], mockContext);
       expect(result).toContain('withMutations((store) => ({');
       expect(result).toContain('createFlight:');
-      expect(result).toContain('removeFlight:');
+      expect(result).toContain('deleteFlight:');
       expect(result).toContain('}))');
     });
   });

@@ -39,7 +39,9 @@ ngrx-openapi-gen -i ./api.yaml -o ./src/app/generated --api-name MyApi
 | `--input` | `-i` | Path to OpenAPI spec (YAML or JSON) | Yes |
 | `--output` | `-o` | Output directory for generated files | Yes |
 | `--api-name` | | Name for the API (used for tokens and folder structure) | Yes |
-| `--model-suffix` | | Suffix for model interfaces (default: `Model`) | No |
+| `--zod` | | Generate Zod schemas for runtime validation | No |
+| `--prefer-entity-names` | | Use entity-based mutation names instead of operationId | No |
+| `--dry-run` | | Preview generated files without writing to disk | No |
 
 ## Project Setup
 

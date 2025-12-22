@@ -27,10 +27,6 @@ import {
 
 export { StoreGeneratorOptions, GeneratedStore } from './types';
 
-/**
- * Generates NgRx Signal Stores from OpenAPI-derived DomainSpec.
- * Produces stores with httpResource for queries and httpMutation for mutations.
- */
 export class StoreGenerator {
   private readonly options: ResolvedStoreGeneratorOptions;
   private readonly typeRenderer: TypeRenderer;
@@ -40,6 +36,8 @@ export class StoreGenerator {
     this.options = {
       basePathToken: options.basePathToken,
       modelSuffix: options.modelSuffix ?? 'Model',
+      zodValidation: options.zodValidation ?? false,
+      preferEntityNames: options.preferEntityNames ?? false,
     };
     this.typeRenderer = new TypeRenderer({ modelSuffix: this.options.modelSuffix });
     this.project = new Project({
@@ -59,6 +57,8 @@ export class StoreGenerator {
     return {
       basePathToken: this.options.basePathToken,
       modelSuffix: this.options.modelSuffix,
+      zodValidation: this.options.zodValidation,
+      preferEntityNames: this.options.preferEntityNames,
       renderType: (schema: unknown) => this.typeRenderer.render(schema as Parameters<TypeRenderer['render']>[0]),
     };
   }
@@ -86,11 +86,6 @@ export class StoreGenerator {
     );
 
     addTypeAliases(sourceFile, mutationOps, ctx);
-
-    sourceFile.addStatements(writer => {
-      writer.newLine();
-      writer.writeLine(`// Auto-generated Signal Store for the ${domain.name} domain.`);
-    });
 
     this.addStoreDeclaration(sourceFile, storeName, collectionOps, detailOps, mutationOps, ctx);
 

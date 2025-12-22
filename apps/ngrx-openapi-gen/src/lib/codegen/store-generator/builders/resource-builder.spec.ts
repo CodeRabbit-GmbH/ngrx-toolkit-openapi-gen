@@ -6,6 +6,8 @@ describe('resource-builder', () => {
   const mockContext: BuilderContext = {
     basePathToken: 'API_BASE_PATH',
     modelSuffix: 'Model',
+    zodValidation: false,
+    preferEntityNames: false,
     renderType: (schema: unknown) => {
       const s = schema as { type?: string; items?: { type?: string } };
       if (s?.type === 'array' && s.items?.type === 'string') {

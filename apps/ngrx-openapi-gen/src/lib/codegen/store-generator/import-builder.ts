@@ -26,9 +26,15 @@ export function addImports(
     });
   }
 
-  const ngrxImports = ['signalStore', 'withState', 'withProps', 'patchState', 'withMethods'];
+  if (ctx.zodValidation) {
+    sourceFile.addImportDeclaration({
+      namedImports: ['z'],
+      moduleSpecifier: 'zod',
+    });
+  }
+
   sourceFile.addImportDeclaration({
-    namedImports: ngrxImports.sort(),
+    namedImports: ['patchState', 'signalStore', 'withMethods', 'withProps', 'withState'],
     moduleSpecifier: '@ngrx/signals',
   });
 
@@ -54,11 +60,25 @@ export function addImports(
   for (const entity of domain.entities) {
     const entitySlug = kebabCase(entity.name);
     const modelName = `${pascalCase(entity.name)}${ctx.modelSuffix}`;
-    sourceFile.addImportDeclaration({
-      isTypeOnly: true,
-      namedImports: [modelName],
-      moduleSpecifier: `../entities/${entitySlug}.model`,
-    });
+    const schemaName = `${modelName}Schema`;
+
+    if (ctx.zodValidation) {
+      sourceFile.addImportDeclaration({
+        namedImports: [schemaName],
+        moduleSpecifier: `../entities/${entitySlug}.model`,
+      });
+      sourceFile.addImportDeclaration({
+        isTypeOnly: true,
+        namedImports: [modelName],
+        moduleSpecifier: `../entities/${entitySlug}.model`,
+      });
+    } else {
+      sourceFile.addImportDeclaration({
+        isTypeOnly: true,
+        namedImports: [modelName],
+        moduleSpecifier: `../entities/${entitySlug}.model`,
+      });
+    }
   }
 
   const importedRequestBodies = new Set<string>();
@@ -93,6 +113,9 @@ export function addTypeAliases(
 
   for (const op of operations) {
     if (op.pathParams.length === 0) continue;
+
+    const hasBody = ['post', 'put', 'patch'].includes(op.method);
+    if (hasBody) continue;
 
     const aliasName = buildParamsTypeName(op);
     if (addedAliases.has(aliasName)) continue;

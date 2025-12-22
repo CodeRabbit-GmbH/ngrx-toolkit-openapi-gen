@@ -20,7 +20,9 @@
     "swagger",
     "code-generator",
     "signal-store",
-    "ngrx-toolkit"
+    "ngrx-toolkit",
+    "zod",
+    "validation"
   ],
   "bin": {
     "ngrx-openapi-gen": "./main.js"
@@ -34,7 +36,8 @@
     "@angular-architects/ngrx-toolkit": ">=18.0.0",
     "@angular/common": ">=18.0.0",
     "@angular/core": ">=18.0.0",
-    "@ngrx/signals": ">=18.0.0"
+    "@ngrx/signals": ">=18.0.0",
+    "zod": ">=3.0.0"
   },
   "peerDependenciesMeta": {
     "@angular-architects/ngrx-toolkit": {
@@ -47,6 +50,9 @@
       "optional": true
     },
     "@ngrx/signals": {
+      "optional": true
+    },
+    "zod": {
       "optional": true
     }
   }

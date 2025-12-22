@@ -128,7 +128,7 @@ describe('StoreGenerator', () => {
     });
 
     it('generates withMutations for DELETE operations', () => {
-      expect(result.content).toContain('removeFlight: httpMutation<');
+      expect(result.content).toContain('deleteFlight: httpMutation<');
       expect(result.content).toContain("method: 'DELETE'");
     });
 

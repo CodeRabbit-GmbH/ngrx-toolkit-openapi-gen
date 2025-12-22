@@ -2,11 +2,12 @@ import { resolve } from 'path';
 import { OpenAPIV3 } from 'openapi-types';
 import { OpenApiParser } from './openapi-parser';
 import { loadOpenApiDocument } from '../openapi-loader';
-import { isReference, isArraySchema } from '../spec';
+import { isReference, isArraySchema, ApiSpec } from '../spec';
+import { OpenApiDocument } from './index';
 
 const fixturesDir = resolve(__dirname, '../../__fixtures__');
 
-function loadFixture(name: string) {
+async function loadFixture(name: string): Promise<OpenApiDocument> {
   return loadOpenApiDocument(resolve(fixturesDir, name));
 }
 
@@ -14,8 +15,13 @@ describe('OpenApiParser', () => {
   const parser = new OpenApiParser();
 
   describe('primitives.yaml', () => {
-    const doc = loadFixture('primitives.yaml');
-    const spec = parser.parse(doc, { apiName: 'PrimitivesApi' });
+    let doc: OpenApiDocument;
+    let spec: ApiSpec;
+
+    beforeAll(async () => {
+      doc = await loadFixture('primitives.yaml');
+      spec = parser.parse(doc, { apiName: 'PrimitivesApi' });
+    });
 
     it('parses API metadata', () => {
       expect(spec.apiName).toBe('PrimitivesApi');
@@ -57,8 +63,13 @@ describe('OpenApiParser', () => {
   });
 
   describe('nullable.yaml', () => {
-    const doc = loadFixture('nullable.yaml');
-    const spec = parser.parse(doc, { apiName: 'NullableApi' });
+    let doc: OpenApiDocument;
+    let spec: ApiSpec;
+
+    beforeAll(async () => {
+      doc = await loadFixture('nullable.yaml');
+      spec = parser.parse(doc, { apiName: 'NullableApi' });
+    });
 
     it('parses nullable types', () => {
       const entity = spec.domains[0].entities.find(e => e.name === 'Product');
@@ -86,8 +97,13 @@ describe('OpenApiParser', () => {
   });
 
   describe('crud.yaml', () => {
-    const doc = loadFixture('crud.yaml');
-    const spec = parser.parse(doc, { apiName: 'CrudApi' });
+    let doc: OpenApiDocument;
+    let spec: ApiSpec;
+
+    beforeAll(async () => {
+      doc = await loadFixture('crud.yaml');
+      spec = parser.parse(doc, { apiName: 'CrudApi' });
+    });
 
     it('classifies GET /tasks as collection', () => {
       const op = spec.domains[0].operations.find(o => o.operationId === 'getTasks');
@@ -136,8 +152,13 @@ describe('OpenApiParser', () => {
   });
 
   describe('refs.yaml', () => {
-    const doc = loadFixture('refs.yaml');
-    const spec = parser.parse(doc, { apiName: 'RefsApi' });
+    let doc: OpenApiDocument;
+    let spec: ApiSpec;
+
+    beforeAll(async () => {
+      doc = await loadFixture('refs.yaml');
+      spec = parser.parse(doc, { apiName: 'RefsApi' });
+    });
 
     it('creates domains for each tag', () => {
       const domainNames = spec.domains.map(d => d.name);
@@ -174,8 +195,13 @@ describe('OpenApiParser', () => {
   });
 
   describe('simple-flight.yaml (existing fixture)', () => {
-    const doc = loadFixture('simple-flight.yaml');
-    const spec = parser.parse(doc, { apiName: 'FlightApi' });
+    let doc: OpenApiDocument;
+    let spec: ApiSpec;
+
+    beforeAll(async () => {
+      doc = await loadFixture('simple-flight.yaml');
+      spec = parser.parse(doc, { apiName: 'FlightApi' });
+    });
 
     it('creates Flight and Booking domains', () => {
       const domainNames = spec.domains.map(d => d.name);

@@ -90,8 +90,8 @@
       "options": {
         "commands": [
           "npx nx build ngrx-openapi-gen",
-          "node dist/apps/ngrx-openapi-gen/apps/ngrx-openapi-gen/src/main.js -i apps/ngrx-openapi-gen-playground/src/api.yaml -o apps/ngrx-openapi-gen-playground/src/app/generated --api-name TasksApi",
-          "node dist/apps/ngrx-openapi-gen/apps/ngrx-openapi-gen/src/main.js -i apps/ngrx-openapi-gen-playground/src/flight-api.json -o apps/ngrx-openapi-gen-playground/src/app/generated --api-name FlightApi"
+          "node dist/apps/ngrx-openapi-gen/apps/ngrx-openapi-gen/src/main.js -i apps/ngrx-openapi-gen-playground/src/api.yaml -o apps/ngrx-openapi-gen-playground/src/app/generated --api-name TasksApi --zod --prefer-entity-names",
+          "node dist/apps/ngrx-openapi-gen/apps/ngrx-openapi-gen/src/main.js -i apps/ngrx-openapi-gen-playground/src/flight-api.json -o apps/ngrx-openapi-gen-playground/src/app/generated --api-name FlightApi --zod --prefer-entity-names"
         ],
         "parallel": false
       }

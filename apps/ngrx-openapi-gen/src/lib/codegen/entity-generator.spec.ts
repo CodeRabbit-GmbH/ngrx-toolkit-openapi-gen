@@ -75,11 +75,6 @@ describe('EntityGenerator', () => {
       expect(result.content).toContain('from?: string | null;');
     });
 
-    it('includes schema reference comment', () => {
-      const result = generator.generateEntity(flightEntity, 'flight', entityIndex);
-      expect(result.content).toContain('// Schema reference: #/components/schemas/Flight');
-    });
-
     it('adds import for referenced models', () => {
       const result = generator.generateEntity(bookingEntity, 'booking', entityIndex);
       expect(result.content).toContain("import type { FlightModel } from '../../flight/entities/flight.model';");

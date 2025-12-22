@@ -6,6 +6,8 @@ describe('methods-builder', () => {
   const mockContext: BuilderContext = {
     basePathToken: 'API_BASE_PATH',
     modelSuffix: 'Model',
+    zodValidation: false,
+    preferEntityNames: false,
     renderType: (schema: unknown) => {
       const s = schema as { type?: string };
       return s?.type === 'number' ? 'number' : 'string';

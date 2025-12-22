@@ -3,28 +3,28 @@ import { pascalCase } from 'change-case';
 import { SchemaOrRef, isReference, isArraySchema, extractSchemaName } from '../spec';
 import { formatPropertyName } from './utils';
 
-export interface TypeRenderOptions {
+export interface ZodRenderOptions {
   modelSuffix?: string;
   indent?: number;
   indentString?: string;
 }
 
-const DEFAULT_OPTIONS: Required<TypeRenderOptions> = {
+const DEFAULT_OPTIONS: Required<ZodRenderOptions> = {
   modelSuffix: 'Model',
   indent: 0,
   indentString: '  ',
 };
 
-export class TypeRenderer {
-  private readonly options: Required<TypeRenderOptions>;
+export class ZodRenderer {
+  private readonly options: Required<ZodRenderOptions>;
 
-  constructor(options: TypeRenderOptions = {}) {
+  constructor(options: ZodRenderOptions = {}) {
     this.options = { ...DEFAULT_OPTIONS, ...options };
   }
 
   render(schema: SchemaOrRef | undefined): string {
     if (!schema) {
-      return 'unknown';
+      return 'z.unknown()';
     }
     return this.renderSchema(schema, this.options.indent);
   }
@@ -36,25 +36,25 @@ export class TypeRenderer {
 
     const combinedType = this.renderCombinationType(schema, indent);
     if (combinedType) {
-      return schema.nullable ? `${combinedType} | null` : combinedType;
+      return schema.nullable ? `${combinedType}.nullable()` : combinedType;
     }
 
     if (schema.enum && schema.enum.length > 0) {
-      const enumType = schema.enum.map(value => this.renderLiteral(value)).join(' | ');
-      return schema.nullable ? `${enumType} | null` : enumType;
+      const enumType = this.renderEnum(schema.enum);
+      return schema.nullable ? `${enumType}.nullable()` : enumType;
     }
 
     let resultType: string;
     switch (schema.type) {
       case 'string':
-        resultType = 'string';
+        resultType = 'z.string()';
         break;
       case 'number':
       case 'integer':
-        resultType = 'number';
+        resultType = 'z.number()';
         break;
       case 'boolean':
-        resultType = 'boolean';
+        resultType = 'z.boolean()';
         break;
       case 'array':
         resultType = this.renderArray(schema as OpenAPIV3.ArraySchemaObject, indent);
@@ -66,27 +66,30 @@ export class TypeRenderer {
         if ('properties' in schema || 'additionalProperties' in schema) {
           resultType = this.renderObject(schema as OpenAPIV3.NonArraySchemaObject, indent);
         } else {
-          resultType = 'unknown';
+          resultType = 'z.unknown()';
         }
     }
 
-    return schema.nullable ? `${resultType} | null` : resultType;
+    return schema.nullable ? `${resultType}.nullable()` : resultType;
   }
 
   private renderCombinationType(schema: OpenAPIV3.SchemaObject, indent: number): string | undefined {
     if (schema.allOf && schema.allOf.length > 0) {
       const members = schema.allOf.map(s => this.renderSchema(s, indent));
-      return members.length === 1 ? members[0] : members.join(' & ');
+      if (members.length === 1) return members[0];
+      return `z.intersection(${members.join(', ')})`;
     }
 
     if (schema.oneOf && schema.oneOf.length > 0) {
       const members = schema.oneOf.map(s => this.renderSchema(s, indent));
-      return members.length === 1 ? members[0] : members.join(' | ');
+      if (members.length === 1) return members[0];
+      return `z.union([${members.join(', ')}])`;
     }
 
     if (schema.anyOf && schema.anyOf.length > 0) {
       const members = schema.anyOf.map(s => this.renderSchema(s, indent));
-      return members.length === 1 ? members[0] : members.join(' | ');
+      if (members.length === 1) return members[0];
+      return `z.union([${members.join(', ')}])`;
     }
 
     return undefined;
@@ -95,10 +98,10 @@ export class TypeRenderer {
   private renderArray(schema: OpenAPIV3.ArraySchemaObject, indent: number): string {
     const items = schema.items;
     if (!items) {
-      return 'Array<unknown>';
+      return 'z.array(z.unknown())';
     }
     const elementType = this.renderSchema(items, indent);
-    return `Array<${elementType}>`;
+    return `z.array(${elementType})`;
   }
 
   private renderObject(schema: OpenAPIV3.NonArraySchemaObject, indent: number): string {
@@ -108,16 +111,16 @@ export class TypeRenderer {
 
     if (!properties || Object.keys(properties).length === 0) {
       if (additionalProps === undefined) {
-        return 'Record<string, unknown>';
+        return 'z.record(z.string(), z.unknown())';
       }
       if (additionalProps === true) {
-        return 'Record<string, unknown>';
+        return 'z.record(z.string(), z.unknown())';
       }
       if (additionalProps === false) {
-        return '{}';
+        return 'z.object({})';
       }
       const valueType = this.renderSchema(additionalProps, indent);
-      return `Record<string, ${valueType}>`;
+      return `z.record(z.string(), ${valueType})`;
     }
 
     const baseIndent = this.options.indentString.repeat(indent);
@@ -125,71 +128,55 @@ export class TypeRenderer {
 
     const lines = Object.entries(properties).map(([name, propSchema]) => {
       const formattedName = formatPropertyName(name);
-      const optional = !required.has(name) ? '?' : '';
-      const type = this.renderSchema(propSchema, indent + 1);
-      return `${propIndent}${formattedName}${optional}: ${type};`;
+      const isRequired = required.has(name);
+      let zodType = this.renderSchema(propSchema, indent + 1);
+      if (!isRequired) {
+        zodType = `${zodType}.optional()`;
+      }
+      return `${propIndent}${formattedName}: ${zodType},`;
     });
 
-    return `{\n${lines.join('\n')}\n${baseIndent}}`;
+    return `z.object({\n${lines.join('\n')}\n${baseIndent}})`;
+  }
+
+  private renderEnum(values: unknown[]): string {
+    const stringValues = values.filter((v): v is string => typeof v === 'string');
+    if (stringValues.length === values.length && stringValues.length > 0) {
+      const escaped = stringValues.map(v => `'${v.replace(/'/g, "\\'")}'`);
+      return `z.enum([${escaped.join(', ')}])`;
+    }
+
+    const literals = values.map(v => this.renderLiteral(v));
+    if (literals.length === 1) {
+      return literals[0];
+    }
+    return `z.union([${literals.join(', ')}])`;
   }
 
   private renderLiteral(value: unknown): string {
     if (value === null) {
-      return 'null';
+      return 'z.null()';
     }
     if (typeof value === 'string') {
       const escaped = value.replace(/'/g, "\\'");
-      return `'${escaped}'`;
+      return `z.literal('${escaped}')`;
     }
-    return String(value);
+    if (typeof value === 'number') {
+      return `z.literal(${value})`;
+    }
+    if (typeof value === 'boolean') {
+      return `z.literal(${value})`;
+    }
+    return 'z.unknown()';
   }
 
   private renderRef(ref: string): string {
     const name = extractSchemaName(ref);
     if (!name) {
-      return 'unknown';
+      return 'z.unknown()';
     }
-    return `${pascalCase(name)}${this.options.modelSuffix}`;
+    const schemaName = `${pascalCase(name)}${this.options.modelSuffix}Schema`;
+    return `z.lazy(() => ${schemaName})`;
   }
 }
 
-export function collectModelRefs(schema: SchemaOrRef | undefined): Set<string> {
-  const refs = new Set<string>();
-
-  function visit(s: SchemaOrRef | undefined): void {
-    if (!s) return;
-
-    if (isReference(s)) {
-      const name = extractSchemaName(s.$ref);
-      if (name) refs.add(name);
-      return;
-    }
-
-    if (isArraySchema(s) && s.items) {
-      visit(s.items);
-    }
-
-    if ('properties' in s && s.properties) {
-      for (const propSchema of Object.values(s.properties)) {
-        visit(propSchema);
-      }
-    }
-
-    if ('additionalProperties' in s && s.additionalProperties && typeof s.additionalProperties !== 'boolean') {
-      visit(s.additionalProperties);
-    }
-
-    if (s.allOf) {
-      for (const member of s.allOf) visit(member);
-    }
-    if (s.oneOf) {
-      for (const member of s.oneOf) visit(member);
-    }
-    if (s.anyOf) {
-      for (const member of s.anyOf) visit(member);
-    }
-  }
-
-  visit(schema);
-  return refs;
-}

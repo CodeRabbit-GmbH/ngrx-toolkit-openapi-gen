@@ -1,6 +1,7 @@
 import { resolve } from 'path';
-import { Generator } from './generator';
+import { Generator, GeneratedFile } from './generator';
 import { loadOpenApiDocument } from './openapi-loader';
+import { OpenApiDocument } from './parser';
 
 const fixturesDir = resolve(__dirname, '../__fixtures__');
 
@@ -11,8 +12,13 @@ describe('Generator', () => {
   });
 
   describe('generate', () => {
-    const doc = loadOpenApiDocument(resolve(fixturesDir, 'simple-flight.yaml'));
-    const files = generator.generate(doc);
+    let doc: OpenApiDocument;
+    let files: GeneratedFile[];
+
+    beforeAll(async () => {
+      doc = await loadOpenApiDocument(resolve(fixturesDir, 'simple-flight.yaml'));
+      files = generator.generate(doc);
+    });
 
     it('generates base path token file in API folder', () => {
       const tokenFile = files.find(f => f.path === 'flight-api/api-base-path.token.ts');
@@ -76,8 +82,8 @@ describe('Generator', () => {
   });
 
   describe('parseDocument', () => {
-    it('returns ApiSpec for debugging', () => {
-      const doc = loadOpenApiDocument(resolve(fixturesDir, 'simple-flight.yaml'));
+    it('returns ApiSpec for debugging', async () => {
+      const doc = await loadOpenApiDocument(resolve(fixturesDir, 'simple-flight.yaml'));
       const spec = generator.parseDocument(doc);
 
       expect(spec.apiName).toBe('FlightApi');
@@ -92,8 +98,13 @@ describe('Generator with CRUD fixture', () => {
     apiName: 'TaskApi',
   });
 
-  const doc = loadOpenApiDocument(resolve(fixturesDir, 'crud.yaml'));
-  const files = generator.generate(doc);
+  let doc: OpenApiDocument;
+  let files: GeneratedFile[];
+
+  beforeAll(async () => {
+    doc = await loadOpenApiDocument(resolve(fixturesDir, 'crud.yaml'));
+    files = generator.generate(doc);
+  });
 
   it('generates all CRUD operations', () => {
     const taskStore = files.find(f => f.path === 'task-api/task/application/task.store.ts');
@@ -128,8 +139,13 @@ describe('Generator with primitive array fixture', () => {
     apiName: 'PrimitiveApi',
   });
 
-  const doc = loadOpenApiDocument(resolve(fixturesDir, 'primitive-array.yaml'));
-  const files = generator.generate(doc);
+  let doc: OpenApiDocument;
+  let files: GeneratedFile[];
+
+  beforeAll(async () => {
+    doc = await loadOpenApiDocument(resolve(fixturesDir, 'primitive-array.yaml'));
+    files = generator.generate(doc);
+  });
 
   it('generates store for Airport domain with primitive string array', () => {
     const airportStore = files.find(f => f.path === 'primitive-api/airport/application/airport.store.ts');

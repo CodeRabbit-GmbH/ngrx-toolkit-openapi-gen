@@ -15,6 +15,8 @@ interface CliOptions {
   basePathToken?: string;
   dryRun?: boolean;
   debugSpec?: string;
+  zod?: boolean;
+  preferEntityNames?: boolean;
 }
 
 interface CliIo {
@@ -38,10 +40,12 @@ export async function runCli(rawArgs: string[] = process.argv, io: CliIo = {}): 
   program
     .name('ngrx-openapi-gen')
     .description('Generate NgRx Signal Stores with withResource and httpMutation from OpenAPI.')
-    .requiredOption('-i, --input <path>', 'Path to the OpenAPI definition file (YAML or JSON).')
+    .requiredOption('-i, --input <path>', 'Path or URL to the OpenAPI definition file (YAML or JSON).')
     .option('-o, --output <path>', 'Directory to emit generated artifacts.')
     .option('--api-name <name>', 'Override API name used in generated output.')
     .option('--base-path-token <token>', 'Angular injection token for the base path.')
+    .option('--zod', 'Generate Zod schemas for runtime validation (requires zod package).')
+    .option('--prefer-entity-names', 'Use entity-based mutation names (createEntity, updateEntity) instead of operationId.')
     .option('--dry-run', 'Preview generated files without writing to disk.')
     .option('--debug-spec <path>', 'Write the computed ApiSpec to the provided path.');
 
@@ -61,16 +65,25 @@ export async function runCli(rawArgs: string[] = process.argv, io: CliIo = {}): 
   }
 
   try {
-    const document = loadOpenApiDocument(parsedOptions.input, { cwd });
+    const document = await loadOpenApiDocument(parsedOptions.input, { cwd });
     const apiName = determineApiName(parsedOptions, document, cwd);
-    
+    const zodValidation = parsedOptions.zod ?? false;
+    const preferEntityNames = parsedOptions.preferEntityNames ?? false;
+
     const generator = new Generator({
       apiName,
       basePathToken: parsedOptions.basePathToken,
+      zodValidation,
+      preferEntityNames,
     });
 
     const spec = generator.parseDocument(document);
     const generatedFiles = generator.generateCode(spec);
+
+    if (zodValidation) {
+      logger(pc.cyan('ℹ Zod validation enabled. Make sure to install zod in your project:'));
+      logger(pc.dim('  npm install zod'));
+    }
 
     if (parsedOptions.debugSpec) {
       const debugPath = resolve(cwd, parsedOptions.debugSpec);

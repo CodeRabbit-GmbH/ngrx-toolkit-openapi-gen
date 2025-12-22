@@ -6,20 +6,42 @@ import { pluralize } from '../../utils';
 import { buildUrlExpression, buildParamsTypeName } from '../helpers';
 import { createWriter } from './writer-utils';
 
-export function buildMutationMethodName(op: OperationSpec): string {
-  if (op.entity) {
-    const entityName = pascalCase(op.entity.name);
-    switch (op.method) {
-      case 'post':
-        return `create${entityName}`;
-      case 'put':
-      case 'patch':
-        return `update${entityName}`;
-      case 'delete':
-        return `remove${entityName}`;
-    }
+function buildEntityBasedName(op: OperationSpec): string | undefined {
+  if (!op.entity) return undefined;
+
+  const entityName = pascalCase(op.entity.name);
+  switch (op.method) {
+    case 'post':
+      return `create${entityName}`;
+    case 'put':
+    case 'patch':
+      return `update${entityName}`;
+    case 'delete':
+      return `remove${entityName}`;
+    default:
+      return undefined;
   }
-  return camelCase(op.operationId);
+}
+
+function buildPathBasedName(op: OperationSpec): string {
+  return camelCase(`${op.method}_${op.path.replace(/[{}\/]/g, '_')}`);
+}
+
+function buildOperationIdName(op: OperationSpec): string {
+  if (op.operationId) {
+    return camelCase(op.operationId);
+  }
+  return buildEntityBasedName(op) ?? buildPathBasedName(op);
+}
+
+export function buildMutationMethodName(op: OperationSpec, ctx: BuilderContext): string {
+  if (ctx.preferEntityNames) {
+    return buildEntityBasedName(op) ?? buildOperationIdName(op);
+  }
+  if (op.operationId) {
+    return camelCase(op.operationId);
+  }
+  return buildEntityBasedName(op) ?? buildPathBasedName(op);
 }
 
 export function buildMutationInputType(
@@ -92,7 +114,9 @@ function writeMutationValue(
   paramsArg: string,
   hasBody: boolean,
   hasPathParams: boolean,
-  collectionResourceName: string | undefined
+  collectionResourceName: string | undefined,
+  schemaName: string | undefined,
+  zodValidation: boolean
 ): string {
   const writer = createWriter();
 
@@ -106,6 +130,12 @@ function writeMutationValue(
     });
     writer.newLine();
     writer.write('})');
+
+    if (zodValidation && schemaName) {
+      writer.write(',');
+      writer.newLine();
+      writer.write(`parse: (data) => ${schemaName}.parse(data)`);
+    }
 
     if (collectionResourceName) {
       writer.write(',');
@@ -128,15 +158,21 @@ function writeMutationValue(
 export function buildMutation(
   op: OperationSpec,
   collectionResourceName: string | undefined,
-  ctx: BuilderContext
+  ctx: BuilderContext,
+  overrideName?: string
 ): ObjectProperty {
-  const methodName = buildMutationMethodName(op);
+  const methodName = overrideName ?? buildMutationMethodName(op, ctx);
   const hasPathParams = op.pathParams.length > 0;
   const hasBody = ['post', 'put', 'patch'].includes(op.method);
   const inputType = buildMutationInputType(op, hasPathParams, hasBody, ctx);
   const outputType = buildMutationOutputType(op, ctx);
   const urlExpr = buildUrlExpression(op.path, op.pathParams);
   const paramsArg = hasPathParams || hasBody ? 'input' : '_';
+
+  let schemaName: string | undefined;
+  if (op.entity) {
+    schemaName = `${pascalCase(op.entity.name)}${ctx.modelSuffix}Schema`;
+  }
 
   const value = writeMutationValue(
     inputType,
@@ -146,16 +182,14 @@ export function buildMutation(
     paramsArg,
     hasBody,
     hasPathParams,
-    collectionResourceName
+    collectionResourceName,
+    schemaName,
+    ctx.zodValidation
   );
 
   return { name: methodName, value };
 }
 
-/**
- * Matches mutation to its collection for auto-reload on success.
- * Falls back to first collection if no entity match found.
- */
 export function findCollectionResourceName(
   op: OperationSpec,
   collectionOps: readonly OperationSpec[]
@@ -182,10 +216,18 @@ export function buildWithMutations(
   ctx: BuilderContext
 ): string {
   const mutations: ObjectProperty[] = [];
+  const usedNames = new Set<string>();
 
   for (const op of mutationOps) {
     const collectionResourceName = findCollectionResourceName(op, collectionOps);
-    const mutation = buildMutation(op, collectionResourceName, ctx);
+    let methodName = buildMutationMethodName(op, ctx);
+
+    if (ctx.preferEntityNames && usedNames.has(methodName) && op.operationId) {
+      methodName = camelCase(op.operationId);
+    }
+    usedNames.add(methodName);
+
+    const mutation = buildMutation(op, collectionResourceName, ctx, methodName);
     mutations.push(mutation);
   }
 
