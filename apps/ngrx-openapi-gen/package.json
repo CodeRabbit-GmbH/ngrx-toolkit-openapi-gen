@@ -1,6 +1,6 @@
 {
   "name": "ngrx-toolkit-openapi-gen",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Generate NgRx Signal Stores with httpResource and httpMutation from OpenAPI specifications",
   "author": "wolfmanfx",
   "license": "MIT",
