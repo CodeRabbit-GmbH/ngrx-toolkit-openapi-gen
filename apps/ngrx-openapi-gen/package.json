@@ -6,12 +6,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wolfmanfx/ngrx-toolkit-openapi-gen.git"
+    "url": "https://github.com/CodeRabbit-GmbH/ngrx-toolkit-openapi-gen.git"
   },
   "bugs": {
-    "url": "https://github.com/wolfmanfx/ngrx-toolkit-openapi-gen/issues"
+    "url": "https://github.com/CodeRabbit-GmbH/ngrx-toolkit-openapi-gen/issues"
   },
-  "homepage": "https://github.com/wolfmanfx/ngrx-toolkit-openapi-gen#readme",
+  "homepage": "https://coderabbit-gmbh.github.io/ngrx-toolkit-openapi-gen/",
   "keywords": [
     "ngrx",
     "angular",

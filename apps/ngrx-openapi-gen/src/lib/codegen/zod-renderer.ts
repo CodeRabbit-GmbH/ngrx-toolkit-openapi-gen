@@ -1,6 +1,6 @@
 import { OpenAPIV3 } from 'openapi-types';
 import { pascalCase } from 'change-case';
-import { SchemaOrRef, isReference, isArraySchema, extractSchemaName } from '../spec';
+import { SchemaOrRef, isReference, extractSchemaName } from '../spec';
 import { formatPropertyName } from './utils';
 
 export interface ZodRenderOptions {

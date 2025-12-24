@@ -173,10 +173,11 @@ npm install zod
 
 ## Documentation
 
-Full documentation: https://wolfmanfx.github.io/ngrx-toolkit-openapi-gen/
+Full documentation: https://coderabbit-gmbh.github.io/ngrx-toolkit-openapi-gen/
 
 ## License
 
 MIT
+
 
 

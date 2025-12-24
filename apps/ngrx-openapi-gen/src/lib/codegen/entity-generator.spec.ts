@@ -1,6 +1,5 @@
-import { OpenAPIV3 } from 'openapi-types';
 import { EntityGenerator, buildEntityIndex } from './entity-generator';
-import { DomainSpec, EntitySpec, SchemaOrRef } from '../spec';
+import { DomainSpec, EntitySpec } from '../spec';
 
 describe('EntityGenerator', () => {
   const generator = new EntityGenerator();

@@ -1,6 +1,5 @@
 import { OpenAPIV3 } from 'openapi-types';
 import { TypeRenderer, collectModelRefs } from './type-renderer';
-import { SchemaOrRef } from '../spec';
 
 describe('TypeRenderer', () => {
   const renderer = new TypeRenderer();

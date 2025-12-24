@@ -10,6 +10,12 @@
       "workspaceChangelog": {
         "createRelease": "github"
       }
+    },
+    "git": {
+      "commit": true,
+      "commitMessage": "chore(release): v{version}",
+      "tag": true,
+      "tagMessage": "v{version}"
     }
   },
   "namedInputs": {
