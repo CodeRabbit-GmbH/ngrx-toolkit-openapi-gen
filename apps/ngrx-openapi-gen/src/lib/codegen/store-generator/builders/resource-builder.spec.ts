@@ -1,4 +1,8 @@
-import { buildCollectionResource, buildDetailResource, buildWithResource } from './resource-builder';
+import {
+  buildCollectionResource,
+  buildDetailResource,
+  buildWithResource,
+} from './resource-builder';
 import { OperationSpec } from '../../../spec';
 import { BuilderContext } from '../types';
 
@@ -45,7 +49,14 @@ describe('resource-builder', () => {
         kind: 'collection',
         entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
         pathParams: [],
-        queryParams: [{ name: 'status', location: 'query', schema: { type: 'string' }, required: false }],
+        queryParams: [
+          {
+            name: 'status',
+            location: 'query',
+            schema: { type: 'string' },
+            required: false,
+          },
+        ],
         successStatusCodes: ['200'],
       };
 
@@ -96,7 +107,14 @@ describe('resource-builder', () => {
         path: '/api/flights/{id}',
         kind: 'detail',
         entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-        pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+        pathParams: [
+          {
+            name: 'id',
+            location: 'path',
+            schema: { type: 'string' },
+            required: true,
+          },
+        ],
         queryParams: [],
         successStatusCodes: ['200'],
       };
@@ -115,7 +133,14 @@ describe('resource-builder', () => {
         method: 'get',
         path: '/api/items/{id}',
         kind: 'detail',
-        pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+        pathParams: [
+          {
+            name: 'id',
+            location: 'path',
+            schema: { type: 'string' },
+            required: true,
+          },
+        ],
         queryParams: [],
         successStatusCodes: ['200'],
       };
@@ -144,12 +169,24 @@ describe('resource-builder', () => {
         path: '/api/flights/{id}',
         kind: 'detail',
         entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-        pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+        pathParams: [
+          {
+            name: 'id',
+            location: 'path',
+            schema: { type: 'string' },
+            required: true,
+          },
+        ],
         queryParams: [],
         successStatusCodes: ['200'],
       };
 
-      const result = buildWithResource([collectionOp], [detailOp], [], mockContext);
+      const result = buildWithResource(
+        [collectionOp],
+        [detailOp],
+        [],
+        mockContext
+      );
       expect(result).toContain('withResource((store) => ({');
       expect(result).toContain('flights: httpResource');
       expect(result).toContain('flightDetail: httpResource');
@@ -157,5 +194,3 @@ describe('resource-builder', () => {
     });
   });
 });
-
-

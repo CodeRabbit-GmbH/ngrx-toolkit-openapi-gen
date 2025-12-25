@@ -52,7 +52,10 @@ export class Generator {
     files.push(this.generateBasePathToken(spec.basePathToken));
 
     for (const domain of spec.domains) {
-      const entityFiles = this.entityGenerator.generateDomainEntities(domain, entityIndex);
+      const entityFiles = this.entityGenerator.generateDomainEntities(
+        domain,
+        entityIndex
+      );
       for (const entityFile of entityFiles) {
         files.push({
           path: `${this.apiSlug}/${entityFile.path}`,

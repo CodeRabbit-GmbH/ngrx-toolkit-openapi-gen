@@ -16,7 +16,11 @@ describe('EntityGenerator', () => {
         schema: { type: 'string', enum: ['scheduled', 'delayed'] },
         optional: false,
       },
-      { name: 'from', schema: { type: 'string', nullable: true }, optional: true },
+      {
+        name: 'from',
+        schema: { type: 'string', nullable: true },
+        optional: true,
+      },
     ],
     description: 'Flight entity with schedule information.',
   };
@@ -28,7 +32,11 @@ describe('EntityGenerator', () => {
     properties: [
       { name: 'id', schema: { type: 'string' }, optional: false },
       { name: 'passenger', schema: { type: 'string' }, optional: false },
-      { name: 'flight', schema: { $ref: '#/components/schemas/Flight' }, optional: true },
+      {
+        name: 'flight',
+        schema: { $ref: '#/components/schemas/Flight' },
+        optional: true,
+      },
     ],
   };
 
@@ -48,46 +56,81 @@ describe('EntityGenerator', () => {
 
   describe('generateEntity', () => {
     it('generates interface with correct name', () => {
-      const result = generator.generateEntity(flightEntity, 'flight', entityIndex);
+      const result = generator.generateEntity(
+        flightEntity,
+        'flight',
+        entityIndex
+      );
       expect(result.content).toContain('export interface FlightModel');
     });
 
     it('generates correct file path', () => {
-      const result = generator.generateEntity(flightEntity, 'flight', entityIndex);
+      const result = generator.generateEntity(
+        flightEntity,
+        'flight',
+        entityIndex
+      );
       expect(result.path).toBe('flight/entities/flight.model.ts');
     });
 
     it('includes primary key constant', () => {
-      const result = generator.generateEntity(flightEntity, 'flight', entityIndex);
-      expect(result.content).toContain("export const FLIGHT_PRIMARY_KEY = 'id' as const;");
+      const result = generator.generateEntity(
+        flightEntity,
+        'flight',
+        entityIndex
+      );
+      expect(result.content).toContain(
+        "export const FLIGHT_PRIMARY_KEY = 'id' as const;"
+      );
     });
 
     it('renders properties with correct types', () => {
-      const result = generator.generateEntity(flightEntity, 'flight', entityIndex);
+      const result = generator.generateEntity(
+        flightEntity,
+        'flight',
+        entityIndex
+      );
       expect(result.content).toContain('id: string;');
       expect(result.content).toContain('number: string;');
       expect(result.content).toContain("status: 'scheduled' | 'delayed';");
     });
 
     it('renders optional properties with question mark', () => {
-      const result = generator.generateEntity(flightEntity, 'flight', entityIndex);
+      const result = generator.generateEntity(
+        flightEntity,
+        'flight',
+        entityIndex
+      );
       expect(result.content).toContain('from?: string | null;');
     });
 
     it('adds import for referenced models', () => {
-      const result = generator.generateEntity(bookingEntity, 'booking', entityIndex);
-      expect(result.content).toContain("import type { FlightModel } from '../../flight/entities/flight.model';");
+      const result = generator.generateEntity(
+        bookingEntity,
+        'booking',
+        entityIndex
+      );
+      expect(result.content).toContain(
+        "import type { FlightModel } from '../../flight/entities/flight.model';"
+      );
     });
 
     it('renders ref types with Model suffix', () => {
-      const result = generator.generateEntity(bookingEntity, 'booking', entityIndex);
+      const result = generator.generateEntity(
+        bookingEntity,
+        'booking',
+        entityIndex
+      );
       expect(result.content).toContain('flight?: FlightModel;');
     });
   });
 
   describe('generateDomainEntities', () => {
     it('generates all entities in domain', () => {
-      const results = generator.generateDomainEntities(flightDomain, entityIndex);
+      const results = generator.generateDomainEntities(
+        flightDomain,
+        entityIndex
+      );
       expect(results).toHaveLength(1);
       expect(results[0].path).toBe('flight/entities/flight.model.ts');
     });

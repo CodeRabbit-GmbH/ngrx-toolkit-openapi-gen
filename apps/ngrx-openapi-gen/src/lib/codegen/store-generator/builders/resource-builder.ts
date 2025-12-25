@@ -20,7 +20,9 @@ function writeCollectionResourceWithParams(
     writer.writeLine(`url: \`\${store._baseUrl}${urlExpr}\`,`);
     if (zodValidation && schemaName) {
       writer.writeLine(`params: store.${paramsKey}(),`);
-      writer.write(`parse: (data: unknown) => z.array(${schemaName}).parse(data)`);
+      writer.write(
+        `parse: (data: unknown) => z.array(${schemaName}).parse(data)`
+      );
     } else {
       writer.write(`params: store.${paramsKey}()`);
     }
@@ -43,12 +45,15 @@ function writeCollectionResourceSimple(
     writer.newLine();
     writer.indent(() => {
       writer.writeLine(`url: \`\${store._baseUrl}${urlExpr}\`,`);
-      writer.write(`parse: (data: unknown) => z.array(${schemaName}).parse(data)`);
+      writer.write(
+        `parse: (data: unknown) => z.array(${schemaName}).parse(data)`
+      );
     });
     writer.newLine();
     writer.write('}), { defaultValue: [] })');
   } else {
-    writer.writeLine(`httpResource<${typeString}>(`)
+    writer
+      .writeLine(`httpResource<${typeString}>(`)
       .indent(() => {
         writer.writeLine(`() => \`\${store._baseUrl}${urlExpr}\`,`);
         writer.write('{ defaultValue: [] }');
@@ -74,7 +79,9 @@ export function buildCollectionResource(
     typeString = `${pascalCase(op.entity.name)}${ctx.modelSuffix}[]`;
     schemaName = `${pascalCase(op.entity.name)}${ctx.modelSuffix}Schema`;
   } else if (op.responseSchema) {
-    resourceKey = camelCase(op.operationId || deriveResourceNameFromPath(op.path));
+    resourceKey = camelCase(
+      op.operationId || deriveResourceNameFromPath(op.path)
+    );
     typeString = ctx.renderType(op.responseSchema);
   } else {
     return null;
@@ -85,13 +92,24 @@ export function buildCollectionResource(
   if (hasParams) {
     return {
       name: resourceKey,
-      value: writeCollectionResourceWithParams(resourceKey, typeString, urlExpr, schemaName, ctx.zodValidation),
+      value: writeCollectionResourceWithParams(
+        resourceKey,
+        typeString,
+        urlExpr,
+        schemaName,
+        ctx.zodValidation
+      ),
     };
   }
 
   return {
     name: resourceKey,
-    value: writeCollectionResourceSimple(typeString, urlExpr, schemaName, ctx.zodValidation),
+    value: writeCollectionResourceSimple(
+      typeString,
+      urlExpr,
+      schemaName,
+      ctx.zodValidation
+    ),
   };
 }
 
@@ -108,7 +126,10 @@ export function buildDetailResource(
   const resourceKey = `${entityNameCamel}Detail`;
   const selectedIdKey = `selected${entityName}Id`;
   const idParam = op.pathParams[0];
-  const urlPath = op.path.replace(`{${idParam?.name || 'id'}}`, `\${store.${selectedIdKey}()}`);
+  const urlPath = op.path.replace(
+    `{${idParam?.name || 'id'}}`,
+    `\${store.${selectedIdKey}()}`
+  );
 
   const writer = createWriter();
 
@@ -129,7 +150,8 @@ export function buildDetailResource(
     writer.newLine();
     writer.write('})');
   } else {
-    writer.writeLine(`httpResource<${modelName} | undefined>(`)
+    writer
+      .writeLine(`httpResource<${modelName} | undefined>(`)
       .indent(() => {
         writer.write(`() => store.${selectedIdKey}() === undefined`);
         writer.newLine();
@@ -157,7 +179,11 @@ export function buildWithResource(
   const resourceProps: ObjectProperty[] = [];
 
   for (const op of collectionOps) {
-    const resource = buildCollectionResource(op, collectionsWithParams.includes(op), ctx);
+    const resource = buildCollectionResource(
+      op,
+      collectionsWithParams.includes(op),
+      ctx
+    );
     if (resource) {
       resourceProps.push(resource);
     }

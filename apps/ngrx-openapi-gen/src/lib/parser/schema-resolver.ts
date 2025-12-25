@@ -71,7 +71,9 @@ export class SchemaResolver {
     const schema = this.getSchemaObject(schemaName);
     if (!schema) return undefined;
 
-    const schemaWithExtension = schema as OpenAPIV3.SchemaObject & { 'x-primary-key'?: string };
+    const schemaWithExtension = schema as OpenAPIV3.SchemaObject & {
+      'x-primary-key'?: string;
+    };
     if (typeof schemaWithExtension['x-primary-key'] === 'string') {
       return schemaWithExtension['x-primary-key'];
     }
@@ -80,7 +82,9 @@ export class SchemaResolver {
 
     for (const [propName, propSchema] of Object.entries(schema.properties)) {
       if (!isReference(propSchema)) {
-        const propWithExtension = propSchema as OpenAPIV3.SchemaObject & { 'x-primary-key'?: boolean };
+        const propWithExtension = propSchema as OpenAPIV3.SchemaObject & {
+          'x-primary-key'?: boolean;
+        };
         if (propWithExtension['x-primary-key']) {
           return propName;
         }
@@ -89,11 +93,11 @@ export class SchemaResolver {
 
     const propNames = Object.keys(schema.properties);
 
-    const directId = propNames.find(p => p.toLowerCase() === 'id');
+    const directId = propNames.find((p) => p.toLowerCase() === 'id');
     if (directId) return directId;
 
-    const entityId = propNames.find(p =>
-      p.toLowerCase() === `${schemaName.toLowerCase()}id`
+    const entityId = propNames.find(
+      (p) => p.toLowerCase() === `${schemaName.toLowerCase()}id`
     );
     if (entityId) return entityId;
 

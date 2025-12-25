@@ -24,7 +24,12 @@ describe('StoreGenerator', () => {
     entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
     pathParams: [],
     queryParams: [
-      { name: 'status', location: 'query', schema: { type: 'string' }, required: false },
+      {
+        name: 'status',
+        location: 'query',
+        schema: { type: 'string' },
+        required: false,
+      },
     ],
     successStatusCodes: ['200'],
   };
@@ -36,7 +41,12 @@ describe('StoreGenerator', () => {
     kind: 'detail',
     entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
     pathParams: [
-      { name: 'id', location: 'path', schema: { type: 'string' }, required: true },
+      {
+        name: 'id',
+        location: 'path',
+        schema: { type: 'string' },
+        required: true,
+      },
     ],
     queryParams: [],
     successStatusCodes: ['200'],
@@ -61,7 +71,12 @@ describe('StoreGenerator', () => {
     kind: 'mutation',
     entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
     pathParams: [
-      { name: 'id', location: 'path', schema: { type: 'string' }, required: true },
+      {
+        name: 'id',
+        location: 'path',
+        schema: { type: 'string' },
+        required: true,
+      },
     ],
     queryParams: [],
     successStatusCodes: ['204'],
@@ -81,7 +96,9 @@ describe('StoreGenerator', () => {
     });
 
     it('generates store with correct name', () => {
-      expect(result.content).toContain('export const FlightStore = signalStore(');
+      expect(result.content).toContain(
+        'export const FlightStore = signalStore('
+      );
     });
 
     it('imports from @ngrx/signals', () => {
@@ -91,7 +108,9 @@ describe('StoreGenerator', () => {
     });
 
     it('imports from @angular-architects/ngrx-toolkit', () => {
-      expect(result.content).toContain("from '@angular-architects/ngrx-toolkit'");
+      expect(result.content).toContain(
+        "from '@angular-architects/ngrx-toolkit'"
+      );
       expect(result.content).toContain('withResource');
       expect(result.content).toContain('withMutations');
       expect(result.content).toContain('httpMutation');
@@ -103,11 +122,15 @@ describe('StoreGenerator', () => {
     });
 
     it('imports base path token', () => {
-      expect(result.content).toContain("import { FLIGHT_API_BASE_PATH } from '../../api-base-path.token'");
+      expect(result.content).toContain(
+        "import { FLIGHT_API_BASE_PATH } from '../../api-base-path.token'"
+      );
     });
 
     it('imports entity model', () => {
-      expect(result.content).toContain("import type { FlightModel } from '../entities/flight.model'");
+      expect(result.content).toContain(
+        "import type { FlightModel } from '../entities/flight.model'"
+      );
     });
 
     it('generates withResource for collections', () => {
@@ -117,13 +140,19 @@ describe('StoreGenerator', () => {
 
     it('generates withResource for detail operations', () => {
       // Detail resources use state-based selection pattern
-      expect(result.content).toContain('flightDetail: httpResource<FlightModel | undefined>');
-      expect(result.content).toContain('selectedFlightId: undefined as string | undefined');
+      expect(result.content).toContain(
+        'flightDetail: httpResource<FlightModel | undefined>'
+      );
+      expect(result.content).toContain(
+        'selectedFlightId: undefined as string | undefined'
+      );
     });
 
     it('generates withMutations for POST operations', () => {
       expect(result.content).toContain('withMutations((store) => ({');
-      expect(result.content).toContain('createFlight: httpMutation<FlightModel, FlightModel>({');
+      expect(result.content).toContain(
+        'createFlight: httpMutation<FlightModel, FlightModel>({'
+      );
       expect(result.content).toContain("method: 'POST'");
     });
 
@@ -175,4 +204,3 @@ describe('StoreGenerator', () => {
     });
   });
 });
-

@@ -24,15 +24,27 @@ describe('methods-builder', () => {
         entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
         pathParams: [],
         queryParams: [
-          { name: 'status', location: 'query', schema: { type: 'string' }, required: false },
-          { name: 'limit', location: 'query', schema: { type: 'number' }, required: false },
+          {
+            name: 'status',
+            location: 'query',
+            schema: { type: 'string' },
+            required: false,
+          },
+          {
+            name: 'limit',
+            location: 'query',
+            schema: { type: 'number' },
+            required: false,
+          },
         ],
         successStatusCodes: ['200'],
       };
 
       const result = buildWithMethods([collectionOp], [], mockContext);
       expect(result).toContain('withMethods((store) => ({');
-      expect(result).toContain('setFlightsParams(params: { status?: string; limit?: number })');
+      expect(result).toContain(
+        'setFlightsParams(params: { status?: string; limit?: number })'
+      );
       expect(result).toContain('patchState(store, { flightsParams: params })');
       expect(result).toContain('}))');
     });
@@ -44,7 +56,14 @@ describe('methods-builder', () => {
         path: '/api/flights/{id}',
         kind: 'detail',
         entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-        pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+        pathParams: [
+          {
+            name: 'id',
+            location: 'path',
+            schema: { type: 'string' },
+            required: true,
+          },
+        ],
         queryParams: [],
         successStatusCodes: ['200'],
       };
@@ -61,7 +80,14 @@ describe('methods-builder', () => {
         path: '/api/items',
         kind: 'collection',
         pathParams: [],
-        queryParams: [{ name: 'page', location: 'query', schema: { type: 'number' }, required: false }],
+        queryParams: [
+          {
+            name: 'page',
+            location: 'query',
+            schema: { type: 'number' },
+            required: false,
+          },
+        ],
         successStatusCodes: ['200'],
       };
 
@@ -70,4 +96,3 @@ describe('methods-builder', () => {
     });
   });
 });
-

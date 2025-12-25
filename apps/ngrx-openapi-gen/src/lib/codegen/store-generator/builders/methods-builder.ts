@@ -14,7 +14,12 @@ export function buildWithMethods(
     if (!op.entity) continue;
     const resourceKey = camelCase(pluralize(op.entity.name));
     const paramFields = op.queryParams
-      .map(p => `${camelCase(p.name)}${p.required ? '' : '?'}: ${ctx.renderType(p.schema)}`)
+      .map(
+        (p) =>
+          `${camelCase(p.name)}${p.required ? '' : '?'}: ${ctx.renderType(
+            p.schema
+          )}`
+      )
       .join('; ');
     const methodName = `set${pascalCase(pluralize(op.entity.name))}Params`;
 
@@ -44,7 +49,7 @@ export function buildWithMethods(
   }
 
   const methodsStr = methods
-    .map(m => `    ${m.name}${m.value}`)
+    .map((m) => `    ${m.name}${m.value}`)
     .join(',\n\n');
 
   return `withMethods((store) => ({

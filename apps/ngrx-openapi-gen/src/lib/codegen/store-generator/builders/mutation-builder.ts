@@ -34,7 +34,10 @@ function buildOperationIdName(op: OperationSpec): string {
   return buildEntityBasedName(op) ?? buildPathBasedName(op);
 }
 
-export function buildMutationMethodName(op: OperationSpec, ctx: BuilderContext): string {
+export function buildMutationMethodName(
+  op: OperationSpec,
+  ctx: BuilderContext
+): string {
   if (ctx.preferEntityNames) {
     return buildEntityBasedName(op) ?? buildOperationIdName(op);
   }
@@ -53,7 +56,7 @@ export function buildMutationInputType(
   if (hasPathParams && hasBody && op.requestBody) {
     const bodyType = ctx.renderType(op.requestBody);
     const paramFields = op.pathParams
-      .map(p => `${camelCase(p.name)}: ${ctx.renderType(p.schema)}`)
+      .map((p) => `${camelCase(p.name)}: ${ctx.renderType(p.schema)}`)
       .join('; ');
     return `{ ${paramFields}; body: ${bodyType} }`;
   }
@@ -65,7 +68,7 @@ export function buildMutationInputType(
   if (hasBody && !op.requestBody) {
     if (hasPathParams) {
       const paramFields = op.pathParams
-        .map(p => `${camelCase(p.name)}: ${ctx.renderType(p.schema)}`)
+        .map((p) => `${camelCase(p.name)}: ${ctx.renderType(p.schema)}`)
         .join('; ');
       return `{ ${paramFields}; body?: unknown }`;
     }
@@ -79,7 +82,10 @@ export function buildMutationInputType(
   return 'void';
 }
 
-export function buildMutationOutputType(op: OperationSpec, ctx: BuilderContext): string {
+export function buildMutationOutputType(
+  op: OperationSpec,
+  ctx: BuilderContext
+): string {
   if (op.responseSchema) {
     return ctx.renderType(op.responseSchema);
   }
@@ -196,7 +202,7 @@ export function findCollectionResourceName(
 ): string | undefined {
   if (op.entity) {
     const matchingCollection = collectionOps.find(
-      collOp => collOp.entity?.name === op.entity?.name
+      (collOp) => collOp.entity?.name === op.entity?.name
     );
     if (matchingCollection?.entity) {
       return camelCase(pluralize(matchingCollection.entity.name));
@@ -219,7 +225,10 @@ export function buildWithMutations(
   const usedNames = new Set<string>();
 
   for (const op of mutationOps) {
-    const collectionResourceName = findCollectionResourceName(op, collectionOps);
+    const collectionResourceName = findCollectionResourceName(
+      op,
+      collectionOps
+    );
     let methodName = buildMutationMethodName(op, ctx);
 
     if (ctx.preferEntityNames && usedNames.has(methodName) && op.operationId) {

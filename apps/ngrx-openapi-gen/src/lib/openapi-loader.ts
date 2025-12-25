@@ -12,7 +12,9 @@ function isUrl(input: string): boolean {
   return input.startsWith('http://') || input.startsWith('https://');
 }
 
-function getFormatFromContentType(contentType: string | null): 'json' | 'yaml' | undefined {
+function getFormatFromContentType(
+  contentType: string | null
+): 'json' | 'yaml' | undefined {
   if (!contentType) return undefined;
 
   const lower = contentType.toLowerCase();
@@ -57,7 +59,8 @@ async function loadFromUrl(url: string): Promise<OpenApiDocument> {
   const contentType = response.headers.get('content-type');
 
   // Try to determine format from Content-Type header first, then URL extension
-  const format = getFormatFromContentType(contentType) ?? getFormatFromPath(url);
+  const format =
+    getFormatFromContentType(contentType) ?? getFormatFromPath(url);
 
   if (format === 'json') {
     return JSON.parse(content) as OpenApiDocument;
@@ -71,7 +74,10 @@ async function loadFromUrl(url: string): Promise<OpenApiDocument> {
   return tryParseWithFallback(content);
 }
 
-function loadFromFile(filePath: string, options: LoadDocumentOptions): OpenApiDocument {
+function loadFromFile(
+  filePath: string,
+  options: LoadDocumentOptions
+): OpenApiDocument {
   const absolutePath = resolve(options.cwd ?? process.cwd(), filePath);
   const content = readFileSync(absolutePath, 'utf8');
   const format = getFormatFromPath(absolutePath);
@@ -99,7 +105,9 @@ function tryParseWithFallback(content: string): OpenApiDocument {
     try {
       return YAML.parse(trimmed) as OpenApiDocument;
     } catch (yamlError) {
-      const combined = new Error('Unable to parse OpenAPI document as JSON or YAML.');
+      const combined = new Error(
+        'Unable to parse OpenAPI document as JSON or YAML.'
+      );
       (combined as Error & { cause?: unknown }).cause = yamlError;
       throw combined;
     }

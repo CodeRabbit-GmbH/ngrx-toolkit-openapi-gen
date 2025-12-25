@@ -52,26 +52,50 @@ describe('helpers', () => {
 
     it('interpolates single path param', () => {
       const params: ParamSpec[] = [
-        { name: 'id', location: 'path', schema: { type: 'string' }, required: true },
+        {
+          name: 'id',
+          location: 'path',
+          schema: { type: 'string' },
+          required: true,
+        },
       ];
-      expect(buildUrlExpression('/api/flights/{id}', params)).toBe('/api/flights/${input.id}');
+      expect(buildUrlExpression('/api/flights/{id}', params)).toBe(
+        '/api/flights/${input.id}'
+      );
     });
 
     it('interpolates multiple path params', () => {
       const params: ParamSpec[] = [
-        { name: 'userId', location: 'path', schema: { type: 'string' }, required: true },
-        { name: 'taskId', location: 'path', schema: { type: 'string' }, required: true },
+        {
+          name: 'userId',
+          location: 'path',
+          schema: { type: 'string' },
+          required: true,
+        },
+        {
+          name: 'taskId',
+          location: 'path',
+          schema: { type: 'string' },
+          required: true,
+        },
       ];
-      expect(buildUrlExpression('/api/users/{userId}/tasks/{taskId}', params))
-        .toBe('/api/users/${input.userId}/tasks/${input.taskId}');
+      expect(
+        buildUrlExpression('/api/users/{userId}/tasks/{taskId}', params)
+      ).toBe('/api/users/${input.userId}/tasks/${input.taskId}');
     });
 
     it('uses custom param variable name', () => {
       const params: ParamSpec[] = [
-        { name: 'id', location: 'path', schema: { type: 'string' }, required: true },
+        {
+          name: 'id',
+          location: 'path',
+          schema: { type: 'string' },
+          required: true,
+        },
       ];
-      expect(buildUrlExpression('/api/flights/{id}', params, 'params'))
-        .toBe('/api/flights/${params.id}');
+      expect(buildUrlExpression('/api/flights/{id}', params, 'params')).toBe(
+        '/api/flights/${params.id}'
+      );
     });
   });
 
@@ -82,15 +106,30 @@ describe('helpers', () => {
 
     it('returns ById for single id param', () => {
       const params: ParamSpec[] = [
-        { name: 'id', location: 'path', schema: { type: 'string' }, required: true },
+        {
+          name: 'id',
+          location: 'path',
+          schema: { type: 'string' },
+          required: true,
+        },
       ];
       expect(buildParamSuffix(params)).toBe('ById');
     });
 
     it('joins multiple params with And', () => {
       const params: ParamSpec[] = [
-        { name: 'userId', location: 'path', schema: { type: 'string' }, required: true },
-        { name: 'taskId', location: 'path', schema: { type: 'string' }, required: true },
+        {
+          name: 'userId',
+          location: 'path',
+          schema: { type: 'string' },
+          required: true,
+        },
+        {
+          name: 'taskId',
+          location: 'path',
+          schema: { type: 'string' },
+          required: true,
+        },
       ];
       expect(buildParamSuffix(params)).toBe('ByUserIdAndTaskId');
     });
@@ -104,7 +143,14 @@ describe('helpers', () => {
         path: '/api/flights/{id}',
         kind: 'detail',
         entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-        pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+        pathParams: [
+          {
+            name: 'id',
+            location: 'path',
+            schema: { type: 'string' },
+            required: true,
+          },
+        ],
         queryParams: [],
         successStatusCodes: ['200'],
       };
@@ -117,7 +163,14 @@ describe('helpers', () => {
         method: 'get',
         path: '/api/special/{id}',
         kind: 'detail',
-        pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+        pathParams: [
+          {
+            name: 'id',
+            location: 'path',
+            schema: { type: 'string' },
+            required: true,
+          },
+        ],
         queryParams: [],
         successStatusCodes: ['200'],
       };
@@ -176,7 +229,14 @@ describe('helpers', () => {
         path: '/api/flights/{id}',
         kind: 'detail',
         entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-        pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+        pathParams: [
+          {
+            name: 'id',
+            location: 'path',
+            schema: { type: 'string' },
+            required: true,
+          },
+        ],
         queryParams: [],
         successStatusCodes: ['200'],
       };
@@ -189,7 +249,14 @@ describe('helpers', () => {
         method: 'get',
         path: '/api/items/{id}',
         kind: 'detail',
-        pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+        pathParams: [
+          {
+            name: 'id',
+            location: 'path',
+            schema: { type: 'string' },
+            required: true,
+          },
+        ],
         queryParams: [],
         successStatusCodes: ['200'],
       };
@@ -197,4 +264,3 @@ describe('helpers', () => {
     });
   });
 });
-

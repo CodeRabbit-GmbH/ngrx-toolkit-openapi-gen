@@ -29,8 +29,18 @@ describe('state-builder', () => {
         entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
         pathParams: [],
         queryParams: [
-          { name: 'status', location: 'query', schema: { type: 'string' }, required: false },
-          { name: 'limit', location: 'query', schema: { type: 'number' }, required: false },
+          {
+            name: 'status',
+            location: 'query',
+            schema: { type: 'string' },
+            required: false,
+          },
+          {
+            name: 'limit',
+            location: 'query',
+            schema: { type: 'number' },
+            required: false,
+          },
         ],
         successStatusCodes: ['200'],
       };
@@ -49,7 +59,14 @@ describe('state-builder', () => {
         path: '/api/flights/{id}',
         kind: 'detail',
         entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-        pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+        pathParams: [
+          {
+            name: 'id',
+            location: 'path',
+            schema: { type: 'string' },
+            required: true,
+          },
+        ],
         queryParams: [],
         successStatusCodes: ['200'],
       };
@@ -67,7 +84,14 @@ describe('state-builder', () => {
         path: '/api/items',
         kind: 'collection',
         pathParams: [],
-        queryParams: [{ name: 'page', location: 'query', schema: { type: 'number' }, required: false }],
+        queryParams: [
+          {
+            name: 'page',
+            location: 'query',
+            schema: { type: 'number' },
+            required: false,
+          },
+        ],
         successStatusCodes: ['200'],
       };
 
@@ -82,7 +106,14 @@ describe('state-builder', () => {
         path: '/api/flights/{id}',
         kind: 'detail',
         entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-        pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+        pathParams: [
+          {
+            name: 'id',
+            location: 'path',
+            schema: { type: 'string' },
+            required: true,
+          },
+        ],
         queryParams: [],
         successStatusCodes: ['200'],
       };
@@ -92,12 +123,23 @@ describe('state-builder', () => {
         path: '/api/flights/{id}/details',
         kind: 'detail',
         entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-        pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+        pathParams: [
+          {
+            name: 'id',
+            location: 'path',
+            schema: { type: 'string' },
+            required: true,
+          },
+        ],
         queryParams: [],
         successStatusCodes: ['200'],
       };
 
-      const result = buildStateProperties([], [detailOp1, detailOp2], mockContext);
+      const result = buildStateProperties(
+        [],
+        [detailOp1, detailOp2],
+        mockContext
+      );
       expect(result).toHaveLength(1);
     });
   });
@@ -112,10 +154,10 @@ describe('state-builder', () => {
       const result = buildWithState(properties);
       expect(result).toContain('withState({');
       expect(result).toContain('flightsParams: {} as { status?: string }');
-      expect(result).toContain('selectedFlightId: undefined as string | undefined');
+      expect(result).toContain(
+        'selectedFlightId: undefined as string | undefined'
+      );
       expect(result).toContain('})');
     });
   });
 });
-
-

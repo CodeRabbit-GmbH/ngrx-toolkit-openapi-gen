@@ -39,7 +39,9 @@ export class StoreGenerator {
       zodValidation: options.zodValidation ?? false,
       preferEntityNames: options.preferEntityNames ?? false,
     };
-    this.typeRenderer = new TypeRenderer({ modelSuffix: this.options.modelSuffix });
+    this.typeRenderer = new TypeRenderer({
+      modelSuffix: this.options.modelSuffix,
+    });
     this.project = new Project({
       useInMemoryFileSystem: true,
       compilerOptions: {
@@ -59,7 +61,10 @@ export class StoreGenerator {
       modelSuffix: this.options.modelSuffix,
       zodValidation: this.options.zodValidation,
       preferEntityNames: this.options.preferEntityNames,
-      renderType: (schema: unknown) => this.typeRenderer.render(schema as Parameters<TypeRenderer['render']>[0]),
+      renderType: (schema: unknown) =>
+        this.typeRenderer.render(
+          schema as Parameters<TypeRenderer['render']>[0]
+        ),
     };
   }
 
@@ -68,11 +73,17 @@ export class StoreGenerator {
     const storeName = `${pascalCase(domain.name)}Store`;
     const filePath = `${domainSlug}/application/${domainSlug}.store.ts`;
 
-    const collectionOps = domain.operations.filter(op => op.kind === 'collection');
-    const detailOps = domain.operations.filter(op => op.kind === 'detail');
-    const mutationOps = domain.operations.filter(op => op.kind === 'mutation');
+    const collectionOps = domain.operations.filter(
+      (op) => op.kind === 'collection'
+    );
+    const detailOps = domain.operations.filter((op) => op.kind === 'detail');
+    const mutationOps = domain.operations.filter(
+      (op) => op.kind === 'mutation'
+    );
 
-    const sourceFile = this.project.createSourceFile(filePath, '', { overwrite: true });
+    const sourceFile = this.project.createSourceFile(filePath, '', {
+      overwrite: true,
+    });
     const ctx = this.createContext();
 
     addImports(
@@ -87,7 +98,14 @@ export class StoreGenerator {
 
     addTypeAliases(sourceFile, mutationOps, ctx);
 
-    this.addStoreDeclaration(sourceFile, storeName, collectionOps, detailOps, mutationOps, ctx);
+    this.addStoreDeclaration(
+      sourceFile,
+      storeName,
+      collectionOps,
+      detailOps,
+      mutationOps,
+      ctx
+    );
 
     sourceFile.formatText();
     return {
@@ -104,29 +122,46 @@ export class StoreGenerator {
     mutationOps: DomainSpec['operations'],
     ctx: BuilderContext
   ): void {
-    const collectionsWithParams = collectionOps.filter(op => op.queryParams.length > 0 && op.entity);
+    const collectionsWithParams = collectionOps.filter(
+      (op) => op.queryParams.length > 0 && op.entity
+    );
     const validCollectionOps = collectionOps.filter(canWriteCollectionResource);
     const validDetailOps = detailOps.filter(canWriteDetailResource);
 
-    const hasResources = validCollectionOps.length > 0 || validDetailOps.length > 0;
-    const hasMethods = validDetailOps.length > 0 || collectionsWithParams.length > 0;
+    const hasResources =
+      validCollectionOps.length > 0 || validDetailOps.length > 0;
+    const hasMethods =
+      validDetailOps.length > 0 || collectionsWithParams.length > 0;
     const hasMutations = mutationOps.length > 0;
 
     const features: string[] = [];
 
     features.push(buildWithProps(ctx.basePathToken));
 
-    const stateProperties = buildStateProperties(collectionsWithParams, validDetailOps, ctx);
+    const stateProperties = buildStateProperties(
+      collectionsWithParams,
+      validDetailOps,
+      ctx
+    );
     if (stateProperties.length > 0) {
       features.push(buildWithState(stateProperties));
     }
 
     if (hasResources) {
-      features.push(buildWithResource(validCollectionOps, validDetailOps, collectionsWithParams, ctx));
+      features.push(
+        buildWithResource(
+          validCollectionOps,
+          validDetailOps,
+          collectionsWithParams,
+          ctx
+        )
+      );
     }
 
     if (hasMethods) {
-      features.push(buildWithMethods(collectionsWithParams, validDetailOps, ctx));
+      features.push(
+        buildWithMethods(collectionsWithParams, validDetailOps, ctx)
+      );
     }
 
     if (hasMutations) {
@@ -136,10 +171,14 @@ export class StoreGenerator {
     sourceFile.addVariableStatement({
       isExported: true,
       declarationKind: VariableDeclarationKind.Const,
-      declarations: [{
-        name: storeName,
-        initializer: `signalStore(\n  { providedIn: 'root' },\n\n  ${features.join(',\n\n  ')}\n)`,
-      }],
+      declarations: [
+        {
+          name: storeName,
+          initializer: `signalStore(\n  { providedIn: 'root' },\n\n  ${features.join(
+            ',\n\n  '
+          )}\n)`,
+        },
+      ],
     });
   }
 }

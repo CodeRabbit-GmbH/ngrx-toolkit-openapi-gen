@@ -42,14 +42,19 @@ describe('ngrx-openapi-gen CLI', () => {
           '      required:',
           '        - id',
         ].join('\n'),
-        'utf8',
+        'utf8'
       );
 
       const logSpy = jest.fn();
-      await runCli(['node', 'ngrx-openapi-gen', '--input', specPath, '--dry-run'], { logger: logSpy });
+      await runCli(
+        ['node', 'ngrx-openapi-gen', '--input', specPath, '--dry-run'],
+        { logger: logSpy }
+      );
 
       expect(logSpy).toHaveBeenCalled();
-      const logOutput = logSpy.mock.calls.map(([message]) => message).join('\n');
+      const logOutput = logSpy.mock.calls
+        .map(([message]) => message)
+        .join('\n');
       expect(logOutput).toContain('Generation Summary');
       expect(logOutput.toLowerCase()).toContain('flight');
       expect(logOutput).toContain('Dry run');

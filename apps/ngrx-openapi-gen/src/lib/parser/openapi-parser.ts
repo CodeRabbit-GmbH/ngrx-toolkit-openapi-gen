@@ -18,7 +18,16 @@ import {
 } from '../spec';
 import { SchemaResolver } from './schema-resolver';
 
-const HTTP_METHODS: HttpMethod[] = ['get', 'put', 'post', 'delete', 'patch', 'options', 'head', 'trace'];
+const HTTP_METHODS: HttpMethod[] = [
+  'get',
+  'put',
+  'post',
+  'delete',
+  'patch',
+  'options',
+  'head',
+  'trace',
+];
 
 interface ResponseDescriptor {
   shape: 'array' | 'object' | 'primitive' | 'void';
@@ -57,19 +66,30 @@ class DomainBuilder {
     return {
       name: this.name,
       operations: [...this.operations],
-      entities: Array.from(this.entities.values()).sort((a, b) => a.name.localeCompare(b.name)),
+      entities: Array.from(this.entities.values()).sort((a, b) =>
+        a.name.localeCompare(b.name)
+      ),
     };
   }
 }
 
 export class OpenApiParser {
   private schemaResolver!: SchemaResolver;
-  private componentParameters: Record<string, OpenAPIV3.ParameterObject | OpenAPIV3.ReferenceObject> = {};
+  private componentParameters: Record<
+    string,
+    OpenAPIV3.ParameterObject | OpenAPIV3.ReferenceObject
+  > = {};
 
   parse(document: OpenAPIV3.Document, options: ApiSpecOptions): ApiSpec {
     const schemas = document.components?.schemas ?? {};
-    this.schemaResolver = new SchemaResolver(schemas as Record<string, SchemaOrRef>);
-    this.componentParameters = (document.components?.parameters ?? {}) as Record<string, OpenAPIV3.ParameterObject | OpenAPIV3.ReferenceObject>;
+    this.schemaResolver = new SchemaResolver(
+      schemas as Record<string, SchemaOrRef>
+    );
+    this.componentParameters = (document.components?.parameters ??
+      {}) as Record<
+      string,
+      OpenAPIV3.ParameterObject | OpenAPIV3.ReferenceObject
+    >;
 
     const domains = new Map<string, DomainBuilder>();
 
@@ -85,10 +105,11 @@ export class OpenApiParser {
     }
 
     const domainSpecs = Array.from(domains.values())
-      .map(builder => builder.build())
+      .map((builder) => builder.build())
       .sort((a, b) => a.name.localeCompare(b.name));
 
-    const basePathToken = options.basePathToken ?? `${constantCase(options.apiName)}_BASE_PATH`;
+    const basePathToken =
+      options.basePathToken ?? `${constantCase(options.apiName)}_BASE_PATH`;
 
     return {
       apiName: options.apiName,
@@ -108,7 +129,9 @@ export class OpenApiParser {
     const tags = this.resolveTags(operation, path);
     const descriptor = this.resolveResponseDescriptor(operation);
     const kind = this.resolveOperationKind(method, descriptor);
-    const entity = descriptor.schemaName ? this.buildEntityRef(descriptor.schemaName) : undefined;
+    const entity = descriptor.schemaName
+      ? this.buildEntityRef(descriptor.schemaName)
+      : undefined;
     const params = this.extractParameters(operation);
     const requestBody = this.extractRequestBodySchema(operation.requestBody);
 
@@ -118,8 +141,8 @@ export class OpenApiParser {
       method,
       kind,
       entity,
-      pathParams: params.filter(p => p.location === 'path'),
-      queryParams: params.filter(p => p.location === 'query'),
+      pathParams: params.filter((p) => p.location === 'path'),
+      queryParams: params.filter((p) => p.location === 'query'),
       requestBody,
       responseSchema: descriptor.schema,
       summary: operation.summary,
@@ -139,7 +162,9 @@ export class OpenApiParser {
       }
 
       if (requestBody && isReference(requestBody)) {
-        const requestBodyName = this.schemaResolver.extractSchemaName(requestBody.$ref);
+        const requestBodyName = this.schemaResolver.extractSchemaName(
+          requestBody.$ref
+        );
         if (requestBodyName) {
           const requestBodyEntity = this.buildEntitySpec(requestBodyName);
           if (requestBodyEntity) {
@@ -152,12 +177,17 @@ export class OpenApiParser {
     }
   }
 
-  private resolveTags(operation: OpenAPIV3.OperationObject, path: string): string[] {
+  private resolveTags(
+    operation: OpenAPIV3.OperationObject,
+    path: string
+  ): string[] {
     if (operation.tags && operation.tags.length > 0) {
       return [...operation.tags];
     }
 
-    const segments = path.split('/').filter(s => s.length > 0 && !s.startsWith('{'));
+    const segments = path
+      .split('/')
+      .filter((s) => s.length > 0 && !s.startsWith('{'));
     if (segments.length > 0) {
       const segment = segments[0];
       return [segment.charAt(0).toUpperCase() + segment.slice(1)];
@@ -166,7 +196,10 @@ export class OpenApiParser {
     return ['Default'];
   }
 
-  private resolveOperationKind(method: HttpMethod, descriptor: ResponseDescriptor): OperationKind {
+  private resolveOperationKind(
+    method: HttpMethod,
+    descriptor: ResponseDescriptor
+  ): OperationKind {
     if (method === 'get') {
       if (descriptor.shape === 'array') return 'collection';
       if (descriptor.shape === 'object') return 'detail';
@@ -174,12 +207,17 @@ export class OpenApiParser {
     return 'mutation';
   }
 
-  private resolveResponseDescriptor(operation: OpenAPIV3.OperationObject): ResponseDescriptor {
+  private resolveResponseDescriptor(
+    operation: OpenAPIV3.OperationObject
+  ): ResponseDescriptor {
     const responses = operation.responses ?? {};
     const successResponses = Object.entries(responses)
       .filter(([status]) => status.startsWith('2'))
       .map(([, response]) => response)
-      .filter((resp): resp is OpenAPIV3.ResponseObject => !isReference(resp as SchemaOrRef));
+      .filter(
+        (resp): resp is OpenAPIV3.ResponseObject =>
+          !isReference(resp as SchemaOrRef)
+      );
 
     for (const response of successResponses) {
       const schema = this.extractJsonSchema(response.content);
@@ -237,12 +275,17 @@ export class OpenApiParser {
     return { shape: 'void' };
   }
 
-  private extractJsonSchema(content?: Record<string, OpenAPIV3.MediaTypeObject>): SchemaOrRef | undefined {
+  private extractJsonSchema(
+    content?: Record<string, OpenAPIV3.MediaTypeObject>
+  ): SchemaOrRef | undefined {
     if (!content) return undefined;
 
     const mediaTypes = Object.keys(content);
-    const jsonMediaType = mediaTypes.find(key =>
-      key === 'application/json' || key.endsWith('+json') || key === 'text/json'
+    const jsonMediaType = mediaTypes.find(
+      (key) =>
+        key === 'application/json' ||
+        key.endsWith('+json') ||
+        key === 'text/json'
     );
 
     if (jsonMediaType) {
@@ -250,10 +293,17 @@ export class OpenApiParser {
     }
 
     const first = mediaTypes[0];
-    return first ? content[first]?.schema as SchemaOrRef | undefined : undefined;
+    return first
+      ? (content[first]?.schema as SchemaOrRef | undefined)
+      : undefined;
   }
 
-  private extractRequestBodySchema(requestBody: OpenAPIV3.RequestBodyObject | OpenAPIV3.ReferenceObject | undefined): SchemaOrRef | undefined {
+  private extractRequestBodySchema(
+    requestBody:
+      | OpenAPIV3.RequestBodyObject
+      | OpenAPIV3.ReferenceObject
+      | undefined
+  ): SchemaOrRef | undefined {
     if (!requestBody) return undefined;
 
     if (isReference(requestBody as SchemaOrRef)) {
@@ -265,7 +315,9 @@ export class OpenApiParser {
       return undefined;
     }
 
-    return this.extractJsonSchema((requestBody as OpenAPIV3.RequestBodyObject).content);
+    return this.extractJsonSchema(
+      (requestBody as OpenAPIV3.RequestBodyObject).content
+    );
   }
 
   private extractParameters(operation: OpenAPIV3.OperationObject): ParamSpec[] {
@@ -273,7 +325,9 @@ export class OpenApiParser {
     const result: ParamSpec[] = [];
 
     for (const param of parameters) {
-      const resolved = this.resolveParameter(param as OpenAPIV3.ParameterObject | OpenAPIV3.ReferenceObject);
+      const resolved = this.resolveParameter(
+        param as OpenAPIV3.ParameterObject | OpenAPIV3.ReferenceObject
+      );
       if (!resolved) continue;
 
       const location = this.normalizeParamLocation(resolved.in);
@@ -291,7 +345,9 @@ export class OpenApiParser {
     return result;
   }
 
-  private resolveParameter(param: OpenAPIV3.ParameterObject | OpenAPIV3.ReferenceObject): OpenAPIV3.ParameterObject | undefined {
+  private resolveParameter(
+    param: OpenAPIV3.ParameterObject | OpenAPIV3.ReferenceObject
+  ): OpenAPIV3.ParameterObject | undefined {
     if (isReference(param as SchemaOrRef)) {
       const refObj = param as OpenAPIV3.ReferenceObject;
       const name = this.schemaResolver.extractParameterName(refObj.$ref);
@@ -325,7 +381,8 @@ export class OpenApiParser {
     const schema = this.schemaResolver.getSchemaObject(schemaName);
     if (!schema) return undefined;
 
-    const properties: PropertySpec[] = this.schemaResolver.buildPropertySpecs(schema);
+    const properties: PropertySpec[] =
+      this.schemaResolver.buildPropertySpecs(schema);
 
     return {
       name: schemaName,
@@ -336,8 +393,12 @@ export class OpenApiParser {
     };
   }
 
-  private collectSuccessStatusCodes(operation: OpenAPIV3.OperationObject): string[] {
+  private collectSuccessStatusCodes(
+    operation: OpenAPIV3.OperationObject
+  ): string[] {
     const responses = operation.responses ?? {};
-    return Object.keys(responses).filter(status => status.startsWith('2')).sort();
+    return Object.keys(responses)
+      .filter((status) => status.startsWith('2'))
+      .sort();
   }
 }

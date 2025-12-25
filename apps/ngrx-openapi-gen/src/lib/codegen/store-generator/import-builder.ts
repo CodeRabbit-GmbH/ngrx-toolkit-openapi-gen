@@ -34,7 +34,13 @@ export function addImports(
   }
 
   sourceFile.addImportDeclaration({
-    namedImports: ['patchState', 'signalStore', 'withMethods', 'withProps', 'withState'],
+    namedImports: [
+      'patchState',
+      'signalStore',
+      'withMethods',
+      'withProps',
+      'withState',
+    ],
     moduleSpecifier: '@ngrx/signals',
   });
 
@@ -87,8 +93,8 @@ export function addImports(
       const refName = extractRefName(op.requestBody.$ref);
       if (refName) {
         const modelName = `${pascalCase(refName)}${ctx.modelSuffix}`;
-        const isEntityModel = domain.entities.some(e =>
-          `${pascalCase(e.name)}${ctx.modelSuffix}` === modelName
+        const isEntityModel = domain.entities.some(
+          (e) => `${pascalCase(e.name)}${ctx.modelSuffix}` === modelName
         );
         if (!isEntityModel && !importedRequestBodies.has(modelName)) {
           importedRequestBodies.add(modelName);
@@ -124,7 +130,7 @@ export function addTypeAliases(
     sourceFile.addTypeAlias({
       name: aliasName,
       type: Writers.objectType({
-        properties: op.pathParams.map(p => ({
+        properties: op.pathParams.map((p) => ({
           name: camelCase(p.name),
           type: ctx.renderType(p.schema),
         })),

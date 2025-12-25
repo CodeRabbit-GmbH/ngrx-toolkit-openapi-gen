@@ -122,10 +122,7 @@ describe('TypeRenderer', () => {
   describe('oneOf/anyOf (unions)', () => {
     it('renders oneOf as union', () => {
       const schema: OpenAPIV3.SchemaObject = {
-        oneOf: [
-          { type: 'string' },
-          { type: 'number' },
-        ],
+        oneOf: [{ type: 'string' }, { type: 'number' }],
       };
       expect(renderer.render(schema)).toBe('string | number');
     });

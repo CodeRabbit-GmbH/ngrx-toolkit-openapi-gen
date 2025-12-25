@@ -2,7 +2,9 @@ import { pascalCase, camelCase } from 'change-case';
 import { OpenAPIV3 } from 'openapi-types';
 import { SchemaOrRef, ParamSpec, OperationSpec } from '../../spec';
 
-export function isReference(schema: SchemaOrRef): schema is OpenAPIV3.ReferenceObject {
+export function isReference(
+  schema: SchemaOrRef
+): schema is OpenAPIV3.ReferenceObject {
   return '$ref' in schema;
 }
 
@@ -16,7 +18,7 @@ export function extractRefName(ref: string): string | undefined {
  * Example: /api/v1/categories → "categories"
  */
 export function deriveResourceNameFromPath(path: string): string {
-  const segments = path.split('/').filter(s => s && !s.startsWith('{'));
+  const segments = path.split('/').filter((s) => s && !s.startsWith('{'));
   return segments[segments.length - 1] || 'items';
 }
 
@@ -28,7 +30,10 @@ export function buildUrlExpression(
   let template = path;
   for (const param of pathParams) {
     const paramCamel = camelCase(param.name);
-    template = template.replace(`{${param.name}}`, `\${${paramVarName}.${paramCamel}}`);
+    template = template.replace(
+      `{${param.name}}`,
+      `\${${paramVarName}.${paramCamel}}`
+    );
   }
   return template;
 }
@@ -38,7 +43,7 @@ export function buildUrlExpression(
  */
 export function buildParamSuffix(params: readonly ParamSpec[]): string {
   if (params.length === 0) return '';
-  return 'By' + params.map(p => pascalCase(p.name)).join('And');
+  return 'By' + params.map((p) => pascalCase(p.name)).join('And');
 }
 
 export function buildParamsTypeName(op: OperationSpec): string {

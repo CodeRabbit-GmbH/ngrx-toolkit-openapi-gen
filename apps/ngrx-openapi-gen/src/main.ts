@@ -26,28 +26,50 @@ interface CliIo {
   cwd?: string;
 }
 
-export async function runCli(rawArgs: string[] = process.argv, io: CliIo = {}): Promise<void> {
+export async function runCli(
+  rawArgs: string[] = process.argv,
+  io: CliIo = {}
+): Promise<void> {
   const logger = io.logger ?? console.log;
   const errorLogger = io.errorLogger ?? console.error;
-  const exit = io.exit ?? ((code: number) => {
-    if (code !== 0) {
-      process.exitCode = code;
-    }
-  });
+  const exit =
+    io.exit ??
+    ((code: number) => {
+      if (code !== 0) {
+        process.exitCode = code;
+      }
+    });
   const cwd = io.cwd ?? process.cwd();
 
   const program = new Command();
   program
     .name('ngrx-openapi-gen')
-    .description('Generate NgRx Signal Stores with withResource and httpMutation from OpenAPI.')
-    .requiredOption('-i, --input <path>', 'Path or URL to the OpenAPI definition file (YAML or JSON).')
+    .description(
+      'Generate NgRx Signal Stores with withResource and httpMutation from OpenAPI.'
+    )
+    .requiredOption(
+      '-i, --input <path>',
+      'Path or URL to the OpenAPI definition file (YAML or JSON).'
+    )
     .option('-o, --output <path>', 'Directory to emit generated artifacts.')
     .option('--api-name <name>', 'Override API name used in generated output.')
-    .option('--base-path-token <token>', 'Angular injection token for the base path.')
-    .option('--zod', 'Generate Zod schemas for runtime validation (requires zod package).')
-    .option('--prefer-entity-names', 'Use entity-based mutation names (createEntity, updateEntity) instead of operationId.')
+    .option(
+      '--base-path-token <token>',
+      'Angular injection token for the base path.'
+    )
+    .option(
+      '--zod',
+      'Generate Zod schemas for runtime validation (requires zod package).'
+    )
+    .option(
+      '--prefer-entity-names',
+      'Use entity-based mutation names (createEntity, updateEntity) instead of operationId.'
+    )
     .option('--dry-run', 'Preview generated files without writing to disk.')
-    .option('--debug-spec <path>', 'Write the computed ApiSpec to the provided path.');
+    .option(
+      '--debug-spec <path>',
+      'Write the computed ApiSpec to the provided path.'
+    );
 
   let parsedOptions: CliOptions;
 
@@ -81,7 +103,11 @@ export async function runCli(rawArgs: string[] = process.argv, io: CliIo = {}): 
     const generatedFiles = generator.generateCode(spec);
 
     if (zodValidation) {
-      logger(pc.cyan('ℹ Zod validation enabled. Make sure to install zod in your project:'));
+      logger(
+        pc.cyan(
+          'ℹ Zod validation enabled. Make sure to install zod in your project:'
+        )
+      );
       logger(pc.dim('  npm install zod'));
     }
 
@@ -96,14 +122,21 @@ export async function runCli(rawArgs: string[] = process.argv, io: CliIo = {}): 
       logger(pc.yellow('Dry run – no files written.'));
     } else {
       if (!parsedOptions.output) {
-        throw new Error('Output directory is required unless --dry-run is used.');
+        throw new Error(
+          'Output directory is required unless --dry-run is used.'
+        );
       }
       outputRoot = resolve(cwd, parsedOptions.output);
       await writeGeneratedFiles(generatedFiles, { outputRoot });
       logger(pc.green(`Wrote ${generatedFiles.length} files to ${outputRoot}`));
     }
 
-    printSummary(logger, generatedFiles, Boolean(parsedOptions.dryRun), outputRoot);
+    printSummary(
+      logger,
+      generatedFiles,
+      Boolean(parsedOptions.dryRun),
+      outputRoot
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     errorLogger(`Failed to generate code: ${message}`);
@@ -111,7 +144,11 @@ export async function runCli(rawArgs: string[] = process.argv, io: CliIo = {}): 
   }
 }
 
-function determineApiName(options: CliOptions, document: { info?: { title?: string } }, cwd: string): string {
+function determineApiName(
+  options: CliOptions,
+  document: { info?: { title?: string } },
+  cwd: string
+): string {
   if (options.apiName) {
     return options.apiName;
   }
@@ -138,7 +175,7 @@ function printSummary(
   logger: (message: string) => void,
   files: GeneratedFile[],
   isDryRun: boolean,
-  outputRoot?: string,
+  outputRoot?: string
 ): void {
   if (files.length === 0) {
     logger(pc.dim('No files generated.'));
@@ -157,10 +194,14 @@ function printSummary(
     groups.set(group, list);
   }
 
-  const sortedGroups = Array.from(groups.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  const sortedGroups = Array.from(groups.entries()).sort((a, b) =>
+    a[0].localeCompare(b[0])
+  );
 
   for (const [group, paths] of sortedGroups) {
-    logger(`${pc.green('✔')} ${pc.bold(group)} ${pc.dim(`(${paths.length} files)`)}`);
+    logger(
+      `${pc.green('✔')} ${pc.bold(group)} ${pc.dim(`(${paths.length} files)`)}`
+    );
     const sortedPaths = paths.slice().sort();
     for (const path of sortedPaths) {
       const label = classifyPath(path);

@@ -2,7 +2,15 @@ import { OpenAPIV3 } from 'openapi-types';
 
 export type SchemaOrRef = OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject;
 
-export type HttpMethod = 'get' | 'put' | 'post' | 'delete' | 'patch' | 'options' | 'head' | 'trace';
+export type HttpMethod =
+  | 'get'
+  | 'put'
+  | 'post'
+  | 'delete'
+  | 'patch'
+  | 'options'
+  | 'head'
+  | 'trace';
 
 export type OperationKind = 'collection' | 'detail' | 'mutation';
 

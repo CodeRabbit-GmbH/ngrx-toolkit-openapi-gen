@@ -57,14 +57,23 @@ export class ZodRenderer {
         resultType = 'z.boolean()';
         break;
       case 'array':
-        resultType = this.renderArray(schema as OpenAPIV3.ArraySchemaObject, indent);
+        resultType = this.renderArray(
+          schema as OpenAPIV3.ArraySchemaObject,
+          indent
+        );
         break;
       case 'object':
-        resultType = this.renderObject(schema as OpenAPIV3.NonArraySchemaObject, indent);
+        resultType = this.renderObject(
+          schema as OpenAPIV3.NonArraySchemaObject,
+          indent
+        );
         break;
       default:
         if ('properties' in schema || 'additionalProperties' in schema) {
-          resultType = this.renderObject(schema as OpenAPIV3.NonArraySchemaObject, indent);
+          resultType = this.renderObject(
+            schema as OpenAPIV3.NonArraySchemaObject,
+            indent
+          );
         } else {
           resultType = 'z.unknown()';
         }
@@ -73,21 +82,24 @@ export class ZodRenderer {
     return schema.nullable ? `${resultType}.nullable()` : resultType;
   }
 
-  private renderCombinationType(schema: OpenAPIV3.SchemaObject, indent: number): string | undefined {
+  private renderCombinationType(
+    schema: OpenAPIV3.SchemaObject,
+    indent: number
+  ): string | undefined {
     if (schema.allOf && schema.allOf.length > 0) {
-      const members = schema.allOf.map(s => this.renderSchema(s, indent));
+      const members = schema.allOf.map((s) => this.renderSchema(s, indent));
       if (members.length === 1) return members[0];
       return `z.intersection(${members.join(', ')})`;
     }
 
     if (schema.oneOf && schema.oneOf.length > 0) {
-      const members = schema.oneOf.map(s => this.renderSchema(s, indent));
+      const members = schema.oneOf.map((s) => this.renderSchema(s, indent));
       if (members.length === 1) return members[0];
       return `z.union([${members.join(', ')}])`;
     }
 
     if (schema.anyOf && schema.anyOf.length > 0) {
-      const members = schema.anyOf.map(s => this.renderSchema(s, indent));
+      const members = schema.anyOf.map((s) => this.renderSchema(s, indent));
       if (members.length === 1) return members[0];
       return `z.union([${members.join(', ')}])`;
     }
@@ -95,7 +107,10 @@ export class ZodRenderer {
     return undefined;
   }
 
-  private renderArray(schema: OpenAPIV3.ArraySchemaObject, indent: number): string {
+  private renderArray(
+    schema: OpenAPIV3.ArraySchemaObject,
+    indent: number
+  ): string {
     const items = schema.items;
     if (!items) {
       return 'z.array(z.unknown())';
@@ -104,7 +119,10 @@ export class ZodRenderer {
     return `z.array(${elementType})`;
   }
 
-  private renderObject(schema: OpenAPIV3.NonArraySchemaObject, indent: number): string {
+  private renderObject(
+    schema: OpenAPIV3.NonArraySchemaObject,
+    indent: number
+  ): string {
     const properties = schema.properties;
     const additionalProps = schema.additionalProperties;
     const required = new Set(schema.required ?? []);
@@ -140,13 +158,15 @@ export class ZodRenderer {
   }
 
   private renderEnum(values: unknown[]): string {
-    const stringValues = values.filter((v): v is string => typeof v === 'string');
+    const stringValues = values.filter(
+      (v): v is string => typeof v === 'string'
+    );
     if (stringValues.length === values.length && stringValues.length > 0) {
-      const escaped = stringValues.map(v => `'${v.replace(/'/g, "\\'")}'`);
+      const escaped = stringValues.map((v) => `'${v.replace(/'/g, "\\'")}'`);
       return `z.enum([${escaped.join(', ')}])`;
     }
 
-    const literals = values.map(v => this.renderLiteral(v));
+    const literals = values.map((v) => this.renderLiteral(v));
     if (literals.length === 1) {
       return literals[0];
     }
@@ -179,4 +199,3 @@ export class ZodRenderer {
     return `z.lazy(() => ${schemaName})`;
   }
 }
-

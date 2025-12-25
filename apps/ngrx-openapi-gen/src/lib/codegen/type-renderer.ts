@@ -1,6 +1,11 @@
 import { OpenAPIV3 } from 'openapi-types';
 import { pascalCase } from 'change-case';
-import { SchemaOrRef, isReference, isArraySchema, extractSchemaName } from '../spec';
+import {
+  SchemaOrRef,
+  isReference,
+  isArraySchema,
+  extractSchemaName,
+} from '../spec';
 import { formatPropertyName } from './utils';
 
 export interface TypeRenderOptions {
@@ -40,7 +45,9 @@ export class TypeRenderer {
     }
 
     if (schema.enum && schema.enum.length > 0) {
-      const enumType = schema.enum.map(value => this.renderLiteral(value)).join(' | ');
+      const enumType = schema.enum
+        .map((value) => this.renderLiteral(value))
+        .join(' | ');
       return schema.nullable ? `${enumType} | null` : enumType;
     }
 
@@ -57,14 +64,23 @@ export class TypeRenderer {
         resultType = 'boolean';
         break;
       case 'array':
-        resultType = this.renderArray(schema as OpenAPIV3.ArraySchemaObject, indent);
+        resultType = this.renderArray(
+          schema as OpenAPIV3.ArraySchemaObject,
+          indent
+        );
         break;
       case 'object':
-        resultType = this.renderObject(schema as OpenAPIV3.NonArraySchemaObject, indent);
+        resultType = this.renderObject(
+          schema as OpenAPIV3.NonArraySchemaObject,
+          indent
+        );
         break;
       default:
         if ('properties' in schema || 'additionalProperties' in schema) {
-          resultType = this.renderObject(schema as OpenAPIV3.NonArraySchemaObject, indent);
+          resultType = this.renderObject(
+            schema as OpenAPIV3.NonArraySchemaObject,
+            indent
+          );
         } else {
           resultType = 'unknown';
         }
@@ -73,26 +89,32 @@ export class TypeRenderer {
     return schema.nullable ? `${resultType} | null` : resultType;
   }
 
-  private renderCombinationType(schema: OpenAPIV3.SchemaObject, indent: number): string | undefined {
+  private renderCombinationType(
+    schema: OpenAPIV3.SchemaObject,
+    indent: number
+  ): string | undefined {
     if (schema.allOf && schema.allOf.length > 0) {
-      const members = schema.allOf.map(s => this.renderSchema(s, indent));
+      const members = schema.allOf.map((s) => this.renderSchema(s, indent));
       return members.length === 1 ? members[0] : members.join(' & ');
     }
 
     if (schema.oneOf && schema.oneOf.length > 0) {
-      const members = schema.oneOf.map(s => this.renderSchema(s, indent));
+      const members = schema.oneOf.map((s) => this.renderSchema(s, indent));
       return members.length === 1 ? members[0] : members.join(' | ');
     }
 
     if (schema.anyOf && schema.anyOf.length > 0) {
-      const members = schema.anyOf.map(s => this.renderSchema(s, indent));
+      const members = schema.anyOf.map((s) => this.renderSchema(s, indent));
       return members.length === 1 ? members[0] : members.join(' | ');
     }
 
     return undefined;
   }
 
-  private renderArray(schema: OpenAPIV3.ArraySchemaObject, indent: number): string {
+  private renderArray(
+    schema: OpenAPIV3.ArraySchemaObject,
+    indent: number
+  ): string {
     const items = schema.items;
     if (!items) {
       return 'Array<unknown>';
@@ -101,7 +123,10 @@ export class TypeRenderer {
     return `Array<${elementType}>`;
   }
 
-  private renderObject(schema: OpenAPIV3.NonArraySchemaObject, indent: number): string {
+  private renderObject(
+    schema: OpenAPIV3.NonArraySchemaObject,
+    indent: number
+  ): string {
     const properties = schema.properties;
     const additionalProps = schema.additionalProperties;
     const required = new Set(schema.required ?? []);
@@ -175,7 +200,11 @@ export function collectModelRefs(schema: SchemaOrRef | undefined): Set<string> {
       }
     }
 
-    if ('additionalProperties' in s && s.additionalProperties && typeof s.additionalProperties !== 'boolean') {
+    if (
+      'additionalProperties' in s &&
+      s.additionalProperties &&
+      typeof s.additionalProperties !== 'boolean'
+    ) {
       visit(s.additionalProperties);
     }
 

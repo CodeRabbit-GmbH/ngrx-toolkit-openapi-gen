@@ -10,4 +10,3 @@ describe('props-builder', () => {
     });
   });
 });
-

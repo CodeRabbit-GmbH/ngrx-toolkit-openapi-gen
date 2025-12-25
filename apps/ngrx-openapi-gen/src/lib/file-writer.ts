@@ -32,7 +32,8 @@ export async function writeGeneratedFiles(
 ): Promise<void> {
   const fs = options.fileSystem ?? {
     mkdir: (path: string, opts: { recursive: boolean }) => mkdir(path, opts),
-    writeFile: (path: string, contents: string) => writeFile(path, contents, 'utf8'),
+    writeFile: (path: string, contents: string) =>
+      writeFile(path, contents, 'utf8'),
   };
 
   for (const file of files) {
@@ -43,4 +44,3 @@ export async function writeGeneratedFiles(
     await fs.writeFile(fullPath, file.content);
   }
 }
-

@@ -1,11 +1,15 @@
 import { OpenAPIV3 } from 'openapi-types';
 import { SchemaOrRef } from './domain-spec';
 
-export function isReference(schema: SchemaOrRef): schema is OpenAPIV3.ReferenceObject {
+export function isReference(
+  schema: SchemaOrRef
+): schema is OpenAPIV3.ReferenceObject {
   return '$ref' in schema;
 }
 
-export function isArraySchema(schema: OpenAPIV3.SchemaObject): schema is OpenAPIV3.ArraySchemaObject {
+export function isArraySchema(
+  schema: OpenAPIV3.SchemaObject
+): schema is OpenAPIV3.ArraySchemaObject {
   return schema.type === 'array';
 }
 

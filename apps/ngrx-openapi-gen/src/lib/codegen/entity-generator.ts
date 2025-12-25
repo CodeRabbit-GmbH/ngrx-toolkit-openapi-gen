@@ -43,8 +43,12 @@ export class EntityGenerator {
 
   constructor(options: EntityGeneratorOptions = {}) {
     this.options = { ...DEFAULT_OPTIONS, ...options };
-    this.typeRenderer = new TypeRenderer({ modelSuffix: this.options.modelSuffix });
-    this.zodRenderer = new ZodRenderer({ modelSuffix: this.options.modelSuffix });
+    this.typeRenderer = new TypeRenderer({
+      modelSuffix: this.options.modelSuffix,
+    });
+    this.zodRenderer = new ZodRenderer({
+      modelSuffix: this.options.modelSuffix,
+    });
     this.project = new Project({
       useInMemoryFileSystem: true,
       compilerOptions: {
@@ -84,7 +88,9 @@ export class EntityGenerator {
     const constantName = `${constantCase(entity.name)}_PRIMARY_KEY`;
     const filePath = `${domainPath}/entities/${entitySlug}.model.ts`;
 
-    const sourceFile = this.project.createSourceFile(filePath, '', { overwrite: true });
+    const sourceFile = this.project.createSourceFile(filePath, '', {
+      overwrite: true,
+    });
 
     if (this.options.zodValidation) {
       this.addZodImport(sourceFile);
@@ -112,7 +118,9 @@ export class EntityGenerator {
     sourceDomainPath: string,
     entityIndex: Map<string, EntityIndex>
   ): void {
-    const selfModelName = `${pascalCase(entity.name)}${this.options.modelSuffix}`;
+    const selfModelName = `${pascalCase(entity.name)}${
+      this.options.modelSuffix
+    }`;
     const referencedModels = new Set<string>();
 
     for (const prop of entity.properties) {
@@ -130,7 +138,11 @@ export class EntityGenerator {
       if (!target) continue;
 
       const modelName = `${pascalCase(refName)}${this.options.modelSuffix}`;
-      const importPath = this.resolveImportPath(sourceDomainPath, target.domainPath, target.entitySlug);
+      const importPath = this.resolveImportPath(
+        sourceDomainPath,
+        target.domainPath,
+        target.entitySlug
+      );
 
       sourceFile.addImportDeclaration({
         isTypeOnly: true,
@@ -162,22 +174,25 @@ export class EntityGenerator {
     interfaceName: string,
     entity: EntitySpec
   ): void {
-    const properties: OptionalKind<PropertySignatureStructure>[] = entity.properties.map(prop => ({
-      name: formatPropertyName(prop.name),
-      type: this.typeRenderer.render(prop.schema),
-      hasQuestionToken: prop.optional,
-    }));
+    const properties: OptionalKind<PropertySignatureStructure>[] =
+      entity.properties.map((prop) => ({
+        name: formatPropertyName(prop.name),
+        type: this.typeRenderer.render(prop.schema),
+        hasQuestionToken: prop.optional,
+      }));
 
     if (properties.length === 0) {
       sourceFile.addInterface({
         name: interfaceName,
         isExported: true,
         properties: [],
-        indexSignatures: [{
-          keyName: 'key',
-          keyType: 'string',
-          returnType: 'unknown',
-        }],
+        indexSignatures: [
+          {
+            keyName: 'key',
+            keyType: 'string',
+            returnType: 'unknown',
+          },
+        ],
       });
       return;
     }
@@ -205,13 +220,17 @@ export class EntityGenerator {
     sourceDomainPath: string,
     entityIndex: Map<string, EntityIndex>
   ): void {
-    const selfSchemaName = `${pascalCase(entity.name)}${this.options.modelSuffix}Schema`;
+    const selfSchemaName = `${pascalCase(entity.name)}${
+      this.options.modelSuffix
+    }Schema`;
     const referencedModels = new Set<string>();
 
     for (const prop of entity.properties) {
       const refs = collectModelRefs(prop.schema);
       for (const ref of refs) {
-        const schemaName = `${pascalCase(ref)}${this.options.modelSuffix}Schema`;
+        const schemaName = `${pascalCase(ref)}${
+          this.options.modelSuffix
+        }Schema`;
         if (schemaName !== selfSchemaName) {
           referencedModels.add(ref);
         }
@@ -222,8 +241,14 @@ export class EntityGenerator {
       const target = entityIndex.get(refName);
       if (!target) continue;
 
-      const schemaName = `${pascalCase(refName)}${this.options.modelSuffix}Schema`;
-      const importPath = this.resolveImportPath(sourceDomainPath, target.domainPath, target.entitySlug);
+      const schemaName = `${pascalCase(refName)}${
+        this.options.modelSuffix
+      }Schema`;
+      const importPath = this.resolveImportPath(
+        sourceDomainPath,
+        target.domainPath,
+        target.entitySlug
+      );
 
       sourceFile.addImportDeclaration({
         namedImports: [schemaName],
@@ -242,16 +267,18 @@ export class EntityGenerator {
       sourceFile.addVariableStatement({
         isExported: true,
         declarationKind: VariableDeclarationKind.Const,
-        declarations: [{
-          name: schemaName,
-          type: `z.ZodType<${typeName}>`,
-          initializer: 'z.object({})',
-        }],
+        declarations: [
+          {
+            name: schemaName,
+            type: `z.ZodType<${typeName}>`,
+            initializer: 'z.object({})',
+          },
+        ],
       });
       return;
     }
 
-    const propLines = entity.properties.map(prop => {
+    const propLines = entity.properties.map((prop) => {
       const formattedName = formatPropertyName(prop.name);
       let zodType = this.zodRenderer.render(prop.schema);
       if (prop.optional) {
@@ -265,11 +292,13 @@ export class EntityGenerator {
     sourceFile.addVariableStatement({
       isExported: true,
       declarationKind: VariableDeclarationKind.Const,
-      declarations: [{
-        name: schemaName,
-        type: `z.ZodType<${typeName}>`,
-        initializer: schemaBody,
-      }],
+      declarations: [
+        {
+          name: schemaName,
+          type: `z.ZodType<${typeName}>`,
+          initializer: schemaBody,
+        },
+      ],
     });
   }
 
@@ -283,15 +312,19 @@ export class EntityGenerator {
     sourceFile.addVariableStatement({
       isExported: true,
       declarationKind: VariableDeclarationKind.Const,
-      declarations: [{
-        name: constantName,
-        initializer: `'${primaryKey}' as const`,
-      }],
+      declarations: [
+        {
+          name: constantName,
+          initializer: `'${primaryKey}' as const`,
+        },
+      ],
     });
   }
 }
 
-export function buildEntityIndex(domains: readonly DomainSpec[]): Map<string, EntityIndex> {
+export function buildEntityIndex(
+  domains: readonly DomainSpec[]
+): Map<string, EntityIndex> {
   const index = new Map<string, EntityIndex>();
 
   for (const domain of domains) {

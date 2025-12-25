@@ -53,7 +53,14 @@ describe('mutation-builder', () => {
           path: '/api/flights/{id}',
           kind: 'mutation',
           entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-          pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+          pathParams: [
+            {
+              name: 'id',
+              location: 'path',
+              schema: { type: 'string' },
+              required: true,
+            },
+          ],
           queryParams: [],
           successStatusCodes: ['204'],
         };
@@ -86,7 +93,9 @@ describe('mutation-builder', () => {
           queryParams: [],
           successStatusCodes: ['201'],
         };
-        expect(buildMutationMethodName(op, entityNamesContext)).toBe('createFlight');
+        expect(buildMutationMethodName(op, entityNamesContext)).toBe(
+          'createFlight'
+        );
       });
 
       it('returns updateEntity for PUT', () => {
@@ -96,11 +105,20 @@ describe('mutation-builder', () => {
           path: '/api/flights/{id}',
           kind: 'mutation',
           entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-          pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+          pathParams: [
+            {
+              name: 'id',
+              location: 'path',
+              schema: { type: 'string' },
+              required: true,
+            },
+          ],
           queryParams: [],
           successStatusCodes: ['200'],
         };
-        expect(buildMutationMethodName(op, entityNamesContext)).toBe('updateFlight');
+        expect(buildMutationMethodName(op, entityNamesContext)).toBe(
+          'updateFlight'
+        );
       });
 
       it('returns removeEntity for DELETE', () => {
@@ -110,11 +128,20 @@ describe('mutation-builder', () => {
           path: '/api/flights/{id}',
           kind: 'mutation',
           entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-          pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+          pathParams: [
+            {
+              name: 'id',
+              location: 'path',
+              schema: { type: 'string' },
+              required: true,
+            },
+          ],
           queryParams: [],
           successStatusCodes: ['204'],
         };
-        expect(buildMutationMethodName(op, entityNamesContext)).toBe('removeFlight');
+        expect(buildMutationMethodName(op, entityNamesContext)).toBe(
+          'removeFlight'
+        );
       });
 
       it('falls back to operationId when no entity', () => {
@@ -127,7 +154,9 @@ describe('mutation-builder', () => {
           queryParams: [],
           successStatusCodes: ['200'],
         };
-        expect(buildMutationMethodName(op, entityNamesContext)).toBe('performAction');
+        expect(buildMutationMethodName(op, entityNamesContext)).toBe(
+          'performAction'
+        );
       });
     });
   });
@@ -145,7 +174,9 @@ describe('mutation-builder', () => {
         requestBody: { $ref: '#/components/schemas/Flight' },
         successStatusCodes: ['201'],
       };
-      expect(buildMutationInputType(op, false, true, mockContext)).toBe('FlightModel');
+      expect(buildMutationInputType(op, false, true, mockContext)).toBe(
+        'FlightModel'
+      );
     });
 
     it('returns combined type for PUT with path params and body', () => {
@@ -155,12 +186,21 @@ describe('mutation-builder', () => {
         path: '/api/flights/{id}',
         kind: 'mutation',
         entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-        pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+        pathParams: [
+          {
+            name: 'id',
+            location: 'path',
+            schema: { type: 'string' },
+            required: true,
+          },
+        ],
         queryParams: [],
         requestBody: { $ref: '#/components/schemas/Flight' },
         successStatusCodes: ['200'],
       };
-      expect(buildMutationInputType(op, true, true, mockContext)).toBe('{ id: string; body: FlightModel }');
+      expect(buildMutationInputType(op, true, true, mockContext)).toBe(
+        '{ id: string; body: FlightModel }'
+      );
     });
 
     it('returns params type for DELETE without body', () => {
@@ -170,11 +210,20 @@ describe('mutation-builder', () => {
         path: '/api/flights/{id}',
         kind: 'mutation',
         entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-        pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+        pathParams: [
+          {
+            name: 'id',
+            location: 'path',
+            schema: { type: 'string' },
+            required: true,
+          },
+        ],
         queryParams: [],
         successStatusCodes: ['204'],
       };
-      expect(buildMutationInputType(op, true, false, mockContext)).toBe('FlightByIdParams');
+      expect(buildMutationInputType(op, true, false, mockContext)).toBe(
+        'FlightByIdParams'
+      );
     });
 
     it('returns void when no params or body', () => {
@@ -188,7 +237,9 @@ describe('mutation-builder', () => {
         successStatusCodes: ['200'],
       };
       // POST has hasBody = true, but no requestBody
-      expect(buildMutationInputType(op, false, true, mockContext)).toBe('unknown');
+      expect(buildMutationInputType(op, false, true, mockContext)).toBe(
+        'unknown'
+      );
     });
   });
 
@@ -228,7 +279,14 @@ describe('mutation-builder', () => {
         method: 'delete',
         path: '/api/items/{id}',
         kind: 'mutation',
-        pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+        pathParams: [
+          {
+            name: 'id',
+            location: 'path',
+            schema: { type: 'string' },
+            required: true,
+          },
+        ],
         queryParams: [],
         successStatusCodes: ['204'],
       };
@@ -259,7 +317,9 @@ describe('mutation-builder', () => {
         queryParams: [],
         successStatusCodes: ['201'],
       };
-      expect(findCollectionResourceName(mutationOp, [collectionOp])).toBe('flights');
+      expect(findCollectionResourceName(mutationOp, [collectionOp])).toBe(
+        'flights'
+      );
     });
 
     it('uses first collection when mutation has no entity', () => {
@@ -272,7 +332,9 @@ describe('mutation-builder', () => {
         queryParams: [],
         successStatusCodes: ['200'],
       };
-      expect(findCollectionResourceName(mutationOp, [collectionOp])).toBe('flights');
+      expect(findCollectionResourceName(mutationOp, [collectionOp])).toBe(
+        'flights'
+      );
     });
 
     it('returns undefined when no collections', () => {
@@ -318,7 +380,14 @@ describe('mutation-builder', () => {
         path: '/api/flights/{id}',
         kind: 'mutation',
         entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-        pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+        pathParams: [
+          {
+            name: 'id',
+            location: 'path',
+            schema: { type: 'string' },
+            required: true,
+          },
+        ],
         queryParams: [],
         successStatusCodes: ['204'],
       };
@@ -351,7 +420,14 @@ describe('mutation-builder', () => {
         path: '/api/flights/{id}',
         kind: 'mutation',
         entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-        pathParams: [{ name: 'id', location: 'path', schema: { type: 'string' }, required: true }],
+        pathParams: [
+          {
+            name: 'id',
+            location: 'path',
+            schema: { type: 'string' },
+            required: true,
+          },
+        ],
         queryParams: [],
         successStatusCodes: ['204'],
       };
@@ -367,7 +443,11 @@ describe('mutation-builder', () => {
         successStatusCodes: ['200'],
       };
 
-      const result = buildWithMutations([createOp, deleteOp], [collectionOp], mockContext);
+      const result = buildWithMutations(
+        [createOp, deleteOp],
+        [collectionOp],
+        mockContext
+      );
       expect(result).toContain('withMutations((store) => ({');
       expect(result).toContain('createFlight:');
       expect(result).toContain('deleteFlight:');
@@ -375,5 +455,3 @@ describe('mutation-builder', () => {
     });
   });
 });
-
-

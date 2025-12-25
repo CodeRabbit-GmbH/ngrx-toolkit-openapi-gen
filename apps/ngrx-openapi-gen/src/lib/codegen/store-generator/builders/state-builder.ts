@@ -14,7 +14,12 @@ export function buildStateProperties(
     if (!op.entity) continue;
     const resourceKey = camelCase(pluralize(op.entity.name));
     const paramFields = op.queryParams
-      .map(p => `${camelCase(p.name)}${p.required ? '' : '?'}: ${ctx.renderType(p.schema)}`)
+      .map(
+        (p) =>
+          `${camelCase(p.name)}${p.required ? '' : '?'}: ${ctx.renderType(
+            p.schema
+          )}`
+      )
       .join('; ');
     properties.push({
       name: `${resourceKey}Params`,
@@ -40,7 +45,7 @@ export function buildStateProperties(
 
 export function buildWithState(properties: ObjectProperty[]): string {
   const propsStr = properties
-    .map(p => `    ${p.name}: ${p.value}`)
+    .map((p) => `    ${p.name}: ${p.value}`)
     .join(',\n');
   return `withState({
 ${propsStr}
