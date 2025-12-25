@@ -1,3 +1,13 @@
+## 0.4.0 (2025-12-25)
+
+### 🚀 Features
+
+- enhance build configuration and improve code formatting ([deb576b](https://github.com/CodeRabbit-GmbH/ngrx-toolkit-openapi-gen/commit/deb576b))
+
+### ❤️ Thank You
+
+- Murat Sari
+
 ## 0.3.1 (2025-12-24)
 
 ### 🩹 Fixes
