@@ -5,8 +5,9 @@
   "scripts": {
     "start": "npx nx serve ngrx-openapi-gen-playground",
     "build": "npx nx build ngrx-openapi-gen",
-    "generate": "npx nx build ngrx-openapi-gen && node dist/apps/ngrx-openapi-gen/apps/ngrx-openapi-gen/src/main.js -i swagger.json -o tmp",
-    "generate:zod": "npx nx build ngrx-openapi-gen && node dist/apps/ngrx-openapi-gen/apps/ngrx-openapi-gen/src/main.js -i swagger.json -o tmp --zod",
+    "generate": "npx nx build ngrx-openapi-gen && node dist/apps/ngrx-openapi-gen/main.js -i swagger.json -o tmp",
+    "generate:zod": "npx nx build ngrx-openapi-gen && node dist/apps/ngrx-openapi-gen/main.js -i swagger.json -o tmp --zod",
+    "test:build": "npx nx build ngrx-openapi-gen && node dist/apps/ngrx-openapi-gen/main.js -i swagger.json -o tmp/test-build --api-name TestApi && rm -rf tmp/test-build",
     "test": "npx nx test ngrx-openapi-gen",
     "test:e2e": "npx playwright test",
     "playground:start": "npm run playground:generate && npx nx serve ngrx-openapi-gen-playground",

@@ -3,7 +3,7 @@
   "release": {
     "projects": ["ngrx-openapi-gen"],
     "version": {
-      "preVersionCommand": "npx nx run-many -t build -p ngrx-openapi-gen",
+      "preVersionCommand": "npx nx run-many -t build,verify-build -p ngrx-openapi-gen",
       "conventionalCommits": true
     },
     "changelog": {
