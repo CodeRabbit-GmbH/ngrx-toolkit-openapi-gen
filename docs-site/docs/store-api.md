@@ -19,7 +19,7 @@ export function withTasks<_>() { return signalStoreFeature(...); }
 export const TaskStore = signalStore({ providedIn: 'root' }, withTasks());
 ```
 
-See [Store Feature Composition](/docs/customization#store-feature-composition) for composition examples.
+See [Store Feature Composition](customization#store-feature-composition) for composition examples.
 
 ## Collection Signals
 
