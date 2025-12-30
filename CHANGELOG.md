@@ -1,3 +1,13 @@
+## 0.4.1 (2025-12-30)
+
+### 🚀 Features
+
+- **codegen:** add withState, withMethods, and Zod param validation ([dbd3e2b](https://github.com/CodeRabbit-GmbH/ngrx-toolkit-openapi-gen/commit/dbd3e2b))
+
+### ❤️ Thank You
+
+- Murat Sari
+
 ## 0.4.0 (2025-12-25)
 
 ### 🚀 Features
