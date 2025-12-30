@@ -59,7 +59,7 @@ components:
 ## 2. Generate
 
 ```bash
-npx ngrx-openapi-gen -i api.yaml -o ./generated --api-name TaskApi
+npx ngrx-openapi-gen -i api.yaml -o ./generated --api-name TaskApi --zod
 ```
 
 ## 3. Generated Output
@@ -69,10 +69,22 @@ generated/
 └── task-api/
     ├── api-base-path.token.ts
     └── task/
-        ├── application/task.store.ts
+        ├── application/
+        │   ├── task.store.ts      # withTasks() + TaskStore
+        │   └── task.schemas.ts    # Zod param schemas (with --zod)
         └── entities/
             ├── task.model.ts
             └── create-task.model.ts
+```
+
+**task.store.ts exports:**
+
+```typescript
+// Feature function - for composition into custom stores
+export function withTasks<_>() { return signalStoreFeature(...); }
+
+// Standalone store - ready to use
+export const TaskStore = signalStore({ providedIn: 'root' }, withTasks());
 ```
 
 ## 4. Configure

@@ -14,3 +14,9 @@ export {
   buildMutationOutputType,
   findCollectionResourceName,
 } from './mutation-builder';
+export {
+  buildParamSchemas,
+  getParamSchemaName,
+  buildSchemaFileContent,
+  ParamSchemaInfo,
+} from './params-schema-builder';

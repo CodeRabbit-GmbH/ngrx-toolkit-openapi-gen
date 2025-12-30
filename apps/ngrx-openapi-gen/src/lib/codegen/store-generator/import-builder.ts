@@ -1,15 +1,40 @@
 import { SourceFile, Writers } from 'ts-morph';
 import { pascalCase, camelCase, kebabCase } from 'change-case';
-import { DomainSpec, OperationSpec } from '../../spec';
+import {
+  DomainSpec,
+  OperationSpec,
+  isReference,
+  extractSchemaName,
+} from '../../spec';
 import { BuilderContext } from './types';
-import { isReference, extractRefName, buildParamsTypeName } from './helpers';
+import { buildParamsTypeName } from './helpers';
+import { ParamSchemaInfo } from './builders/params-schema-builder';
+
+function collectUsedEntities(
+  operations: readonly OperationSpec[]
+): Set<string> {
+  const used = new Set<string>();
+  for (const op of operations) {
+    if (op.entity) {
+      used.add(op.entity.name);
+    }
+  }
+  return used;
+}
+
+export interface ImportOptions {
+  hasCollections: boolean;
+  hasMutations: boolean;
+  hasDetails: boolean;
+  hasState: boolean;
+  hasMethods: boolean;
+  hasEntityCollections: boolean;
+}
 
 export function addImports(
   sourceFile: SourceFile,
   domain: DomainSpec,
-  hasCollections: boolean,
-  hasMutations: boolean,
-  hasDetails: boolean,
+  options: ImportOptions,
   mutationOps: OperationSpec[],
   ctx: BuilderContext
 ): void {
@@ -18,7 +43,7 @@ export function addImports(
     moduleSpecifier: '@angular/core',
   });
 
-  const hasResources = hasCollections || hasDetails;
+  const hasResources = options.hasCollections || options.hasDetails;
   if (hasResources) {
     sourceFile.addImportDeclaration({
       namedImports: ['httpResource'],
@@ -26,21 +51,33 @@ export function addImports(
     });
   }
 
-  if (ctx.zodValidation) {
+  // Only include zod if validation is enabled AND we have entity-based collections or details
+  const includeZod =
+    ctx.zodValidation && (options.hasEntityCollections || options.hasDetails);
+
+  if (includeZod) {
     sourceFile.addImportDeclaration({
       namedImports: ['z'],
       moduleSpecifier: 'zod',
     });
   }
 
+  // Build @ngrx/signals imports based on what's actually needed
+  const ngrxImports: string[] = [
+    'signalStore',
+    'signalStoreFeature',
+    'withProps',
+  ];
+
+  if (options.hasMethods) {
+    ngrxImports.push('patchState', 'withMethods');
+  }
+  if (options.hasState) {
+    ngrxImports.push('withState');
+  }
+
   sourceFile.addImportDeclaration({
-    namedImports: [
-      'patchState',
-      'signalStore',
-      'withMethods',
-      'withProps',
-      'withState',
-    ],
+    namedImports: ngrxImports.sort(),
     moduleSpecifier: '@ngrx/signals',
   });
 
@@ -48,7 +85,7 @@ export function addImports(
   if (hasResources) {
     toolkitImports.push('withResource');
   }
-  if (hasMutations) {
+  if (options.hasMutations) {
     toolkitImports.push('withMutations', 'httpMutation');
   }
   if (toolkitImports.length > 0) {
@@ -60,29 +97,35 @@ export function addImports(
 
   sourceFile.addImportDeclaration({
     namedImports: [ctx.basePathToken],
-    moduleSpecifier: '../../api-base-path.token',
+    moduleSpecifier: ctx.sharedEntities
+      ? '../api-base-path.token'
+      : '../../api-base-path.token',
   });
 
+  const usedEntities = collectUsedEntities(domain.operations);
   for (const entity of domain.entities) {
+    if (!usedEntities.has(entity.name)) continue;
+
     const entitySlug = kebabCase(entity.name);
     const modelName = `${pascalCase(entity.name)}${ctx.modelSuffix}`;
     const schemaName = `${modelName}Schema`;
+    const basePath = ctx.sharedEntities ? '../shared/entities' : '../entities';
 
     if (ctx.zodValidation) {
       sourceFile.addImportDeclaration({
         namedImports: [schemaName],
-        moduleSpecifier: `../entities/${entitySlug}.model`,
+        moduleSpecifier: `${basePath}/${entitySlug}.model`,
       });
       sourceFile.addImportDeclaration({
         isTypeOnly: true,
         namedImports: [modelName],
-        moduleSpecifier: `../entities/${entitySlug}.model`,
+        moduleSpecifier: `${basePath}/${entitySlug}.model`,
       });
     } else {
       sourceFile.addImportDeclaration({
         isTypeOnly: true,
         namedImports: [modelName],
-        moduleSpecifier: `../entities/${entitySlug}.model`,
+        moduleSpecifier: `${basePath}/${entitySlug}.model`,
       });
     }
   }
@@ -90,19 +133,20 @@ export function addImports(
   const importedRequestBodies = new Set<string>();
   for (const op of mutationOps) {
     if (op.requestBody && isReference(op.requestBody)) {
-      const refName = extractRefName(op.requestBody.$ref);
+      const refName = extractSchemaName(op.requestBody.$ref);
       if (refName) {
         const modelName = `${pascalCase(refName)}${ctx.modelSuffix}`;
-        const isEntityModel = domain.entities.some(
-          (e) => `${pascalCase(e.name)}${ctx.modelSuffix}` === modelName
-        );
-        if (!isEntityModel && !importedRequestBodies.has(modelName)) {
+        const isUsedEntity = usedEntities.has(refName);
+        if (!isUsedEntity && !importedRequestBodies.has(modelName)) {
           importedRequestBodies.add(modelName);
           const modelSlug = kebabCase(refName);
+          const basePath = ctx.sharedEntities
+            ? '../shared/entities'
+            : '../entities';
           sourceFile.addImportDeclaration({
             isTypeOnly: true,
             namedImports: [modelName],
-            moduleSpecifier: `../entities/${modelSlug}.model`,
+            moduleSpecifier: `${basePath}/${modelSlug}.model`,
           });
         }
       }
@@ -137,4 +181,18 @@ export function addTypeAliases(
       }),
     });
   }
+}
+
+export function addSchemaImports(
+  sourceFile: SourceFile,
+  paramSchemas: ParamSchemaInfo[],
+  domainSlug: string
+): void {
+  if (paramSchemas.length === 0) return;
+
+  const schemaNames = paramSchemas.map((s) => s.schemaName);
+  sourceFile.addImportDeclaration({
+    namedImports: schemaNames,
+    moduleSpecifier: `./${domainSlug}.schemas`,
+  });
 }

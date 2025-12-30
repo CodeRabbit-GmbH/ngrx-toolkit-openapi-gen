@@ -1,17 +1,7 @@
 import { pascalCase, camelCase } from 'change-case';
-import { OpenAPIV3 } from 'openapi-types';
-import { SchemaOrRef, ParamSpec, OperationSpec } from '../../spec';
-
-export function isReference(
-  schema: SchemaOrRef
-): schema is OpenAPIV3.ReferenceObject {
-  return '$ref' in schema;
-}
-
-export function extractRefName(ref: string): string | undefined {
-  const match = /#\/components\/schemas\/(.+)$/.exec(ref);
-  return match?.[1];
-}
+import { ParamSpec, OperationSpec } from '../../spec';
+import { pluralize } from '../utils';
+import { BuilderContext } from './types';
 
 /**
  * Derives resource name from URL path segment.
@@ -55,10 +45,67 @@ export function buildParamsTypeName(op: OperationSpec): string {
   return `${pascalCase(op.operationId)}Params`;
 }
 
+/**
+ * Builds a stable collection key. Defaults to pluralized entity name, but when
+ * multiple collection operations target the same entity we fall back to
+ * operationId to avoid name collisions.
+ */
+export function buildCollectionKey(
+  op: OperationSpec,
+  ctx: Pick<BuilderContext, 'duplicateCollectionEntities'>
+): string {
+  if (op.entity && ctx.duplicateCollectionEntities.has(op.entity.name)) {
+    return camelCase(op.operationId ?? pluralize(op.entity.name));
+  }
+
+  if (op.entity) {
+    return camelCase(pluralize(op.entity.name));
+  }
+
+  return camelCase(op.operationId ?? deriveResourceNameFromPath(op.path));
+}
+
 export function canWriteCollectionResource(op: OperationSpec): boolean {
   return !!(op.entity || op.responseSchema);
 }
 
 export function canWriteDetailResource(op: OperationSpec): boolean {
-  return !!op.entity;
+  return !!op.entity && op.pathParams.length > 0;
+}
+
+/**
+ * Renders query/path params as TypeScript inline type fields.
+ * Example: "status?: string; limit?: number"
+ */
+export function renderParamFields(
+  params: readonly ParamSpec[],
+  renderType: (schema: unknown) => string
+): string {
+  return params
+    .map(
+      (p) =>
+        `${camelCase(p.name)}${p.required ? '' : '?'}: ${renderType(p.schema)}`
+    )
+    .join('; ');
+}
+
+/** OperationSpec with a guaranteed entity (non-null). */
+export type OperationWithEntity = OperationSpec & {
+  entity: NonNullable<OperationSpec['entity']>;
+};
+
+/**
+ * Yields unique detail operations by entity name.
+ * Prevents duplicate state/methods when multiple detail ops exist for the same entity.
+ * Returns ops with guaranteed entity (type-narrowed).
+ */
+export function* uniqueDetailOps(
+  detailOps: readonly OperationSpec[]
+): Generator<OperationWithEntity> {
+  const seen = new Set<string>();
+  for (const op of detailOps) {
+    if (!op.entity || seen.has(op.entity.name)) continue;
+    seen.add(op.entity.name);
+    yield op as OperationWithEntity;
+  }
 }

@@ -47,11 +47,13 @@ export class ZodRenderer {
     let resultType: string;
     switch (schema.type) {
       case 'string':
-        resultType = 'z.string()';
+        resultType = this.renderStringOrFormat(schema);
         break;
       case 'number':
-      case 'integer':
         resultType = 'z.number()';
+        break;
+      case 'integer':
+        resultType = this.renderInteger();
         break;
       case 'boolean':
         resultType = 'z.boolean()';
@@ -89,7 +91,7 @@ export class ZodRenderer {
     if (schema.allOf && schema.allOf.length > 0) {
       const members = schema.allOf.map((s) => this.renderSchema(s, indent));
       if (members.length === 1) return members[0];
-      return `z.intersection(${members.join(', ')})`;
+      return members.reduce((acc, member) => `${acc}.and(${member})`);
     }
 
     if (schema.oneOf && schema.oneOf.length > 0) {
@@ -128,10 +130,7 @@ export class ZodRenderer {
     const required = new Set(schema.required ?? []);
 
     if (!properties || Object.keys(properties).length === 0) {
-      if (additionalProps === undefined) {
-        return 'z.record(z.string(), z.unknown())';
-      }
-      if (additionalProps === true) {
+      if (additionalProps === undefined || additionalProps === true) {
         return 'z.record(z.string(), z.unknown())';
       }
       if (additionalProps === false) {
@@ -155,6 +154,59 @@ export class ZodRenderer {
     });
 
     return `z.object({\n${lines.join('\n')}\n${baseIndent}})`;
+  }
+
+  private renderStringOrFormat(schema: OpenAPIV3.SchemaObject): string {
+    if (schema.format) {
+      const topLevelType = this.getTopLevelFormatType(schema.format);
+      if (topLevelType) {
+        return topLevelType;
+      }
+    }
+
+    const validators: string[] = ['z.string()'];
+
+    if (schema.pattern) {
+      const escapedPattern = this.escapeRegexForJs(schema.pattern);
+      validators.push(`regex(/${escapedPattern}/)`);
+    }
+
+    return validators.join('.');
+  }
+
+  private getTopLevelFormatType(format: string): string | undefined {
+    switch (format) {
+      case 'uuid':
+        return 'z.uuid()';
+      case 'email':
+        return 'z.email()';
+      case 'uri':
+      case 'url':
+        return 'z.url()';
+      case 'date':
+        return 'z.iso.date()';
+      case 'date-time':
+        return 'z.iso.datetime()';
+      case 'ipv4':
+        return 'z.ipv4()';
+      case 'ipv6':
+        return 'z.ipv6()';
+      case 'byte':
+        return 'z.base64()';
+      case 'binary':
+      case 'password':
+      case 'hostname':
+      default:
+        return undefined;
+    }
+  }
+
+  private escapeRegexForJs(pattern: string): string {
+    return pattern.replace(/\//g, '\\/');
+  }
+
+  private renderInteger(): string {
+    return 'z.number().int()';
   }
 
   private renderEnum(values: unknown[]): string {

@@ -8,9 +8,15 @@ describe('methods-builder', () => {
     modelSuffix: 'Model',
     zodValidation: false,
     preferEntityNames: false,
+    sharedEntities: false,
+    duplicateCollectionEntities: new Set(),
     renderType: (schema: unknown) => {
       const s = schema as { type?: string };
       return s?.type === 'number' ? 'number' : 'string';
+    },
+    renderZod: (schema: unknown) => {
+      const s = schema as { type?: string };
+      return s?.type === 'number' ? 'z.number()' : 'z.string()';
     },
   };
 
@@ -93,6 +99,60 @@ describe('methods-builder', () => {
 
       const result = buildWithMethods([collectionOp], [], mockContext);
       expect(result).not.toContain('setItemsParams');
+    });
+
+    it('includes validation in setParams when zodValidation is enabled', () => {
+      const zodContext: BuilderContext = {
+        ...mockContext,
+        zodValidation: true,
+      };
+      const collectionOp: OperationSpec = {
+        operationId: 'getFlights',
+        method: 'get',
+        path: '/api/flights',
+        kind: 'collection',
+        entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
+        pathParams: [],
+        queryParams: [
+          {
+            name: 'status',
+            location: 'query',
+            schema: { type: 'string' },
+            required: false,
+          },
+        ],
+        successStatusCodes: ['200'],
+      };
+
+      const result = buildWithMethods([collectionOp], [], zodContext);
+      expect(result).toContain('flightsParamsSchema.parse(params)');
+    });
+
+    it('includes validation in select method when zodValidation is enabled', () => {
+      const zodContext: BuilderContext = {
+        ...mockContext,
+        zodValidation: true,
+      };
+      const detailOp: OperationSpec = {
+        operationId: 'getFlight',
+        method: 'get',
+        path: '/api/flights/{id}',
+        kind: 'detail',
+        entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
+        pathParams: [
+          {
+            name: 'id',
+            location: 'path',
+            schema: { type: 'string' },
+            required: true,
+          },
+        ],
+        queryParams: [],
+        successStatusCodes: ['200'],
+      };
+
+      const result = buildWithMethods([], [detailOp], zodContext);
+      expect(result).toContain('flightIdSchema.parse(id)');
     });
   });
 });

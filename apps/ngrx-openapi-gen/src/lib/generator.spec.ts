@@ -215,3 +215,44 @@ describe('Generator with primitive array fixture', () => {
     expect(airportModel).toBeUndefined();
   });
 });
+
+describe('Generator with shared entities enabled', () => {
+  const generator = new Generator({
+    apiName: 'FlightApi',
+    basePathToken: 'FLIGHT_API_BASE_PATH',
+    sharedEntities: true,
+  });
+
+  let doc: OpenApiDocument;
+  let files: GeneratedFile[];
+
+  beforeAll(async () => {
+    doc = await loadOpenApiDocument(resolve(fixturesDir, 'simple-flight.yaml'));
+    files = generator.generate(doc);
+  });
+
+  it('places all entity models in shared/entities', () => {
+    const flightModel = files.find((f) =>
+      f.path.endsWith('shared/entities/flight.model.ts')
+    );
+    const bookingModel = files.find((f) =>
+      f.path.endsWith('shared/entities/booking.model.ts')
+    );
+    expect(flightModel).toBeDefined();
+    expect(bookingModel).toBeDefined();
+    // No domain-specific entity folders
+    expect(files.some((f) => f.path.includes('/flight/entities/'))).toBeFalsy();
+    expect(
+      files.some((f) => f.path.includes('/booking/entities/'))
+    ).toBeFalsy();
+  });
+
+  it('stores import shared entities in generated stores', () => {
+    const flightStore = files.find(
+      (f) => f.path === 'flight-api/flight/flight.store.ts'
+    );
+    expect(flightStore?.content).toContain(
+      "from '../shared/entities/flight.model'"
+    );
+  });
+});

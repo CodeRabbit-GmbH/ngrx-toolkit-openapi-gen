@@ -1,47 +1,22 @@
 import {
-  isReference,
-  extractRefName,
   deriveResourceNameFromPath,
   buildUrlExpression,
   buildParamSuffix,
   buildParamsTypeName,
   canWriteCollectionResource,
   canWriteDetailResource,
+  uniqueDetailOps,
 } from './helpers';
 import { OperationSpec, ParamSpec } from '../../spec';
 
 describe('helpers', () => {
-  describe('isReference', () => {
-    it('returns true for reference objects', () => {
-      expect(isReference({ $ref: '#/components/schemas/Flight' })).toBe(true);
-    });
-
-    it('returns false for schema objects', () => {
-      expect(isReference({ type: 'string' })).toBe(false);
-    });
-  });
-
-  describe('extractRefName', () => {
-    it('extracts schema name from $ref', () => {
-      expect(extractRefName('#/components/schemas/Flight')).toBe('Flight');
-    });
-
-    it('returns undefined for invalid refs', () => {
-      expect(extractRefName('/invalid/ref')).toBeUndefined();
-    });
-  });
-
   describe('deriveResourceNameFromPath', () => {
-    it('extracts last segment from path', () => {
-      expect(deriveResourceNameFromPath('/api/flights')).toBe('flights');
-    });
-
-    it('ignores path parameters', () => {
-      expect(deriveResourceNameFromPath('/api/flights/{id}')).toBe('flights');
-    });
-
-    it('returns items for empty path', () => {
-      expect(deriveResourceNameFromPath('/')).toBe('items');
+    it.each([
+      ['/api/flights', 'flights'],
+      ['/api/flights/{id}', 'flights'],
+      ['/', 'items'],
+    ])('deriveResourceNameFromPath(%s) = %s', (path, expected) => {
+      expect(deriveResourceNameFromPath(path)).toBe(expected);
     });
   });
 
@@ -50,7 +25,7 @@ describe('helpers', () => {
       expect(buildUrlExpression('/api/flights', [])).toBe('/api/flights');
     });
 
-    it('interpolates single path param', () => {
+    it('interpolates path params with default variable name', () => {
       const params: ParamSpec[] = [
         {
           name: 'id',
@@ -100,38 +75,109 @@ describe('helpers', () => {
   });
 
   describe('buildParamSuffix', () => {
-    it('returns empty string for no params', () => {
-      expect(buildParamSuffix([])).toBe('');
+    const makeParam = (name: string): ParamSpec => ({
+      name,
+      location: 'path',
+      schema: { type: 'string' },
+      required: true,
     });
 
-    it('returns ById for single id param', () => {
-      const params: ParamSpec[] = [
+    it.each([
+      [[], ''],
+      [[makeParam('id')], 'ById'],
+      [[makeParam('userId'), makeParam('taskId')], 'ByUserIdAndTaskId'],
+    ])('buildParamSuffix(%j) = %s', (params, expected) => {
+      expect(buildParamSuffix(params)).toBe(expected);
+    });
+  });
+
+  describe('uniqueDetailOps', () => {
+    it('yields unique operations by entity name', () => {
+      const ops: OperationSpec[] = [
         {
-          name: 'id',
-          location: 'path',
-          schema: { type: 'string' },
-          required: true,
+          operationId: 'getFlight',
+          method: 'get',
+          path: '/api/flights/{id}',
+          kind: 'detail',
+          entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
+          pathParams: [
+            {
+              name: 'id',
+              location: 'path',
+              schema: { type: 'string' },
+              required: true,
+            },
+          ],
+          queryParams: [],
+          successStatusCodes: ['200'],
+        },
+        {
+          operationId: 'getFlightDetails',
+          method: 'get',
+          path: '/api/flights/{id}/details',
+          kind: 'detail',
+          entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
+          pathParams: [
+            {
+              name: 'id',
+              location: 'path',
+              schema: { type: 'string' },
+              required: true,
+            },
+          ],
+          queryParams: [],
+          successStatusCodes: ['200'],
+        },
+        {
+          operationId: 'getBooking',
+          method: 'get',
+          path: '/api/bookings/{id}',
+          kind: 'detail',
+          entity: {
+            name: 'Booking',
+            schemaRef: '#/components/schemas/Booking',
+          },
+          pathParams: [
+            {
+              name: 'id',
+              location: 'path',
+              schema: { type: 'string' },
+              required: true,
+            },
+          ],
+          queryParams: [],
+          successStatusCodes: ['200'],
         },
       ];
-      expect(buildParamSuffix(params)).toBe('ById');
+
+      const result = [...uniqueDetailOps(ops)];
+      expect(result).toHaveLength(2);
+      expect(result[0].entity.name).toBe('Flight');
+      expect(result[1].entity.name).toBe('Booking');
     });
 
-    it('joins multiple params with And', () => {
-      const params: ParamSpec[] = [
+    it('skips operations without entity', () => {
+      const ops: OperationSpec[] = [
         {
-          name: 'userId',
-          location: 'path',
-          schema: { type: 'string' },
-          required: true,
-        },
-        {
-          name: 'taskId',
-          location: 'path',
-          schema: { type: 'string' },
-          required: true,
+          operationId: 'getItem',
+          method: 'get',
+          path: '/api/items/{id}',
+          kind: 'detail',
+          pathParams: [
+            {
+              name: 'id',
+              location: 'path',
+              schema: { type: 'string' },
+              required: true,
+            },
+          ],
+          queryParams: [],
+          successStatusCodes: ['200'],
         },
       ];
-      expect(buildParamSuffix(params)).toBe('ByUserIdAndTaskId');
+
+      const result = [...uniqueDetailOps(ops)];
+      expect(result).toHaveLength(0);
     });
   });
 
@@ -222,7 +268,7 @@ describe('helpers', () => {
   });
 
   describe('canWriteDetailResource', () => {
-    it('returns true when entity exists', () => {
+    it('returns true when entity and path params exist', () => {
       const op: OperationSpec = {
         operationId: 'getFlight',
         method: 'get',
@@ -257,6 +303,20 @@ describe('helpers', () => {
             required: true,
           },
         ],
+        queryParams: [],
+        successStatusCodes: ['200'],
+      };
+      expect(canWriteDetailResource(op)).toBe(false);
+    });
+
+    it('returns false when entity exists but no path params', () => {
+      const op: OperationSpec = {
+        operationId: 'getCurrentUser',
+        method: 'get',
+        path: '/api/users/current',
+        kind: 'detail',
+        entity: { name: 'User', schemaRef: '#/components/schemas/User' },
+        pathParams: [],
         queryParams: [],
         successStatusCodes: ['200'],
       };

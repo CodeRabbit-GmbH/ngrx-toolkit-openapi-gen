@@ -12,8 +12,8 @@ describe('ZodRenderer', () => {
       expect(renderer.render({ type: 'number' })).toBe('z.number()');
     });
 
-    it('renders integer type', () => {
-      expect(renderer.render({ type: 'integer' })).toBe('z.number()');
+    it('renders integer type with int validator', () => {
+      expect(renderer.render({ type: 'integer' })).toBe('z.number().int()');
     });
 
     it('renders boolean type', () => {
@@ -22,6 +22,128 @@ describe('ZodRenderer', () => {
 
     it('renders unknown for undefined schema', () => {
       expect(renderer.render(undefined)).toBe('z.unknown()');
+    });
+  });
+
+  describe('string formats (Zod 4 top-level types)', () => {
+    it('renders uuid format as z.uuid()', () => {
+      expect(renderer.render({ type: 'string', format: 'uuid' })).toBe(
+        'z.uuid()'
+      );
+    });
+
+    it('renders email format as z.email()', () => {
+      expect(renderer.render({ type: 'string', format: 'email' })).toBe(
+        'z.email()'
+      );
+    });
+
+    it('renders uri format as z.url()', () => {
+      expect(renderer.render({ type: 'string', format: 'uri' })).toBe(
+        'z.url()'
+      );
+    });
+
+    it('renders url format as z.url()', () => {
+      expect(renderer.render({ type: 'string', format: 'url' })).toBe(
+        'z.url()'
+      );
+    });
+
+    it('renders date format as z.iso.date()', () => {
+      expect(renderer.render({ type: 'string', format: 'date' })).toBe(
+        'z.iso.date()'
+      );
+    });
+
+    it('renders date-time format as z.iso.datetime()', () => {
+      expect(renderer.render({ type: 'string', format: 'date-time' })).toBe(
+        'z.iso.datetime()'
+      );
+    });
+
+    it('renders ipv4 format as z.ipv4()', () => {
+      expect(renderer.render({ type: 'string', format: 'ipv4' })).toBe(
+        'z.ipv4()'
+      );
+    });
+
+    it('renders ipv6 format as z.ipv6()', () => {
+      expect(renderer.render({ type: 'string', format: 'ipv6' })).toBe(
+        'z.ipv6()'
+      );
+    });
+
+    it('renders byte format as z.base64()', () => {
+      expect(renderer.render({ type: 'string', format: 'byte' })).toBe(
+        'z.base64()'
+      );
+    });
+
+    it('renders unknown format as plain string', () => {
+      expect(renderer.render({ type: 'string', format: 'binary' })).toBe(
+        'z.string()'
+      );
+    });
+
+    it('renders nullable string with format', () => {
+      expect(
+        renderer.render({ type: 'string', format: 'uuid', nullable: true })
+      ).toBe('z.uuid().nullable()');
+    });
+  });
+
+  describe('string patterns', () => {
+    it('renders pattern as regex', () => {
+      expect(
+        renderer.render({ type: 'string', pattern: '^[a-z0-9]{40}$' })
+      ).toBe('z.string().regex(/^[a-z0-9]{40}$/)');
+    });
+
+    it('escapes forward slashes in pattern', () => {
+      expect(
+        renderer.render({ type: 'string', pattern: '^https://example.com/.*$' })
+      ).toBe('z.string().regex(/^https:\\/\\/example.com\\/.*$/)');
+    });
+
+    it('renders pattern without format (format takes precedence)', () => {
+      expect(
+        renderer.render({
+          type: 'string',
+          format: 'email',
+          pattern: '^.*@example\\.com$',
+        })
+      ).toBe('z.email()');
+    });
+
+    it('renders nullable string with pattern', () => {
+      expect(
+        renderer.render({
+          type: 'string',
+          pattern: '^[A-Z]+$',
+          nullable: true,
+        })
+      ).toBe('z.string().regex(/^[A-Z]+$/).nullable()');
+    });
+  });
+
+  describe('integer formats', () => {
+    it('renders int32 format with int validator', () => {
+      expect(renderer.render({ type: 'integer', format: 'int32' })).toBe(
+        'z.number().int()'
+      );
+    });
+
+    it('renders int64 format with int validator', () => {
+      expect(renderer.render({ type: 'integer', format: 'int64' })).toBe(
+        'z.number().int()'
+      );
+    });
+
+    it('renders nullable integer with format', () => {
+      expect(
+        renderer.render({ type: 'integer', format: 'int32', nullable: true })
+      ).toBe('z.number().int().nullable()');
     });
   });
 
@@ -182,7 +304,7 @@ describe('ZodRenderer', () => {
       ).toBe('z.union([z.boolean(), z.string()])');
     });
 
-    it('renders allOf as intersection', () => {
+    it('renders allOf as intersection with 2 schemas', () => {
       expect(
         renderer.render({
           allOf: [
@@ -191,7 +313,21 @@ describe('ZodRenderer', () => {
           ],
         })
       ).toBe(
-        'z.intersection(z.lazy(() => BaseModelSchema), z.lazy(() => ExtendedModelSchema))'
+        'z.lazy(() => BaseModelSchema).and(z.lazy(() => ExtendedModelSchema))'
+      );
+    });
+
+    it('renders allOf with 3+ schemas as chained intersections', () => {
+      expect(
+        renderer.render({
+          allOf: [
+            { $ref: '#/components/schemas/Base' },
+            { $ref: '#/components/schemas/Extended' },
+            { $ref: '#/components/schemas/Extra' },
+          ],
+        })
+      ).toBe(
+        'z.lazy(() => BaseModelSchema).and(z.lazy(() => ExtendedModelSchema)).and(z.lazy(() => ExtraModelSchema))'
       );
     });
 

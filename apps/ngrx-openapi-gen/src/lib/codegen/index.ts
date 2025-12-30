@@ -15,5 +15,6 @@ export {
   StoreGenerator,
   StoreGeneratorOptions,
   GeneratedStore,
+  GeneratedFile,
 } from './store-generator/index';
 export * from './utils';

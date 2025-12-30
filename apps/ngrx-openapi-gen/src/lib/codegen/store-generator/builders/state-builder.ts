@@ -1,7 +1,11 @@
-import { pascalCase, camelCase } from 'change-case';
+import { pascalCase } from 'change-case';
 import { OperationSpec } from '../../../spec';
 import { ObjectProperty, BuilderContext } from '../types';
-import { pluralize } from '../../utils';
+import {
+  buildCollectionKey,
+  renderParamFields,
+  uniqueDetailOps,
+} from '../helpers';
 
 export function buildStateProperties(
   collectionsWithParams: readonly OperationSpec[],
@@ -12,32 +16,30 @@ export function buildStateProperties(
 
   for (const op of collectionsWithParams) {
     if (!op.entity) continue;
-    const resourceKey = camelCase(pluralize(op.entity.name));
-    const paramFields = op.queryParams
-      .map(
-        (p) =>
-          `${camelCase(p.name)}${p.required ? '' : '?'}: ${ctx.renderType(
-            p.schema
-          )}`
-      )
-      .join('; ');
+    const resourceKey = buildCollectionKey(op, ctx);
+    const paramFields = renderParamFields(op.queryParams, ctx.renderType);
     properties.push({
       name: `${resourceKey}Params`,
       value: `{} as { ${paramFields} }`,
     });
   }
 
-  const addedDetailEntities = new Set<string>();
-  for (const op of detailOps) {
-    if (!op.entity || addedDetailEntities.has(op.entity.name)) continue;
-    addedDetailEntities.add(op.entity.name);
-
-    const idParam = op.pathParams[0];
-    const idType = idParam ? ctx.renderType(idParam.schema) : 'string';
-    properties.push({
-      name: `selected${pascalCase(op.entity.name)}Id`,
-      value: `undefined as ${idType} | undefined`,
-    });
+  for (const op of uniqueDetailOps(detailOps)) {
+    const entityName = pascalCase(op.entity.name);
+    if (op.pathParams.length > 1) {
+      const paramsType = renderParamFields(op.pathParams, ctx.renderType);
+      properties.push({
+        name: `selected${entityName}Params`,
+        value: `undefined as { ${paramsType} } | undefined`,
+      });
+    } else {
+      const idParam = op.pathParams[0];
+      const idType = idParam ? ctx.renderType(idParam.schema) : 'string';
+      properties.push({
+        name: `selected${entityName}Id`,
+        value: `undefined as ${idType} | undefined`,
+      });
+    }
   }
 
   return properties;

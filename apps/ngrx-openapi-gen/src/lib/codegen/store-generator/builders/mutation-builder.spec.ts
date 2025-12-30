@@ -15,6 +15,7 @@ describe('mutation-builder', () => {
     modelSuffix: 'Model',
     zodValidation: false,
     preferEntityNames: false,
+    duplicateCollectionEntities: new Set(),
     renderType: (schema: unknown) => {
       const s = schema as { $ref?: string; type?: string };
       if (s?.$ref) {
@@ -23,6 +24,15 @@ describe('mutation-builder', () => {
       }
       return s?.type || 'unknown';
     },
+    renderZod: (schema: unknown) => {
+      const s = schema as { $ref?: string; type?: string };
+      if (s?.$ref) {
+        const name = s.$ref.split('/').pop();
+        return `${name}ModelSchema`;
+      }
+      return s?.type === 'number' ? 'z.number()' : 'z.string()';
+    },
+    sharedEntities: false,
   };
 
   const entityNamesContext: BuilderContext = {

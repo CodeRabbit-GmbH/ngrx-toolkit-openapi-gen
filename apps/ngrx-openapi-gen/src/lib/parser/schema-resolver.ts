@@ -1,8 +1,10 @@
 import { OpenAPIV3 } from 'openapi-types';
 import {
   SchemaOrRef,
+  SchemaKind,
   PropertySpec,
   isReference,
+  isArraySchema,
   extractSchemaName,
   extractParameterName,
 } from '../spec';
@@ -62,6 +64,96 @@ export class SchemaResolver {
   private getSchemaDescription(ref: string): string | undefined {
     const schema = this.resolveRef(ref);
     return schema?.description;
+  }
+
+  /**
+   * Determines the kind of a schema: object, enum, or type-alias.
+   */
+  getSchemaKind(schema: OpenAPIV3.SchemaObject): SchemaKind {
+    // Enum schemas (with enum values) are 'enum' kind
+    if (schema.enum && schema.enum.length > 0) {
+      return 'enum';
+    }
+
+    // Object schemas with properties are 'object' kind
+    if (
+      schema.type === 'object' ||
+      schema.properties ||
+      schema.allOf ||
+      schema.oneOf ||
+      schema.anyOf
+    ) {
+      return 'object';
+    }
+
+    // Everything else (primitives, arrays without $ref) is a type-alias
+    return 'type-alias';
+  }
+
+  /**
+   * Collects all schema names referenced by a given schema (recursively).
+   */
+  collectReferencedSchemas(schema: SchemaOrRef): Set<string> {
+    const refs = new Set<string>();
+    this.visitSchema(schema, refs);
+    return refs;
+  }
+
+  private visitSchema(
+    schema: SchemaOrRef | undefined,
+    refs: Set<string>
+  ): void {
+    if (!schema) return;
+
+    if (isReference(schema)) {
+      const name = extractSchemaName(schema.$ref);
+      if (name && !refs.has(name)) {
+        refs.add(name);
+        // Recursively visit the referenced schema
+        const referencedSchema = this.getSchemaObject(name);
+        if (referencedSchema) {
+          this.visitSchema(referencedSchema, refs);
+        }
+      }
+      return;
+    }
+
+    // Visit array items
+    if (isArraySchema(schema) && schema.items) {
+      this.visitSchema(schema.items, refs);
+    }
+
+    // Visit object properties
+    if (schema.properties) {
+      for (const propSchema of Object.values(schema.properties)) {
+        this.visitSchema(propSchema, refs);
+      }
+    }
+
+    // Visit additionalProperties
+    if (
+      schema.additionalProperties &&
+      typeof schema.additionalProperties !== 'boolean'
+    ) {
+      this.visitSchema(schema.additionalProperties, refs);
+    }
+
+    // Visit composition schemas
+    if (schema.allOf) {
+      for (const member of schema.allOf) {
+        this.visitSchema(member, refs);
+      }
+    }
+    if (schema.oneOf) {
+      for (const member of schema.oneOf) {
+        this.visitSchema(member, refs);
+      }
+    }
+    if (schema.anyOf) {
+      for (const member of schema.anyOf) {
+        this.visitSchema(member, refs);
+      }
+    }
   }
 
   /**

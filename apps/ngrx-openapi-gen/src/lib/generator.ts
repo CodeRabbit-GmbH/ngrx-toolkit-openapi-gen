@@ -10,6 +10,7 @@ export interface GeneratorOptions {
   modelSuffix?: string;
   zodValidation?: boolean;
   preferEntityNames?: boolean;
+  sharedEntities?: boolean;
 }
 
 export interface GeneratedFile {
@@ -27,6 +28,7 @@ export class Generator {
     this.entityGenerator = new EntityGenerator({
       modelSuffix: options.modelSuffix ?? 'Model',
       zodValidation: options.zodValidation ?? false,
+      sharedEntities: options.sharedEntities ?? false,
     });
     this.apiSlug = kebabCase(options.apiName);
   }
@@ -47,14 +49,17 @@ export class Generator {
 
   generateCode(spec: ApiSpec): GeneratedFile[] {
     const files: GeneratedFile[] = [];
-    const entityIndex = buildEntityIndex(spec.domains);
+    const sharedEntities = this.options.sharedEntities ?? false;
+    const entityIndex = buildEntityIndex(spec.domains, sharedEntities);
+    const generatedEntities = sharedEntities ? new Set<string>() : undefined;
 
     files.push(this.generateBasePathToken(spec.basePathToken));
 
     for (const domain of spec.domains) {
       const entityFiles = this.entityGenerator.generateDomainEntities(
         domain,
-        entityIndex
+        entityIndex,
+        generatedEntities
       );
       for (const entityFile of entityFiles) {
         files.push({
@@ -69,14 +74,21 @@ export class Generator {
       modelSuffix: this.options.modelSuffix ?? 'Model',
       zodValidation: this.options.zodValidation ?? false,
       preferEntityNames: this.options.preferEntityNames ?? false,
+      sharedEntities,
     });
 
     for (const domain of spec.domains) {
-      const storeFile = storeGenerator.generateStore(domain);
+      const storeResult = storeGenerator.generateStore(domain);
       files.push({
-        path: `${this.apiSlug}/${storeFile.path}`,
-        content: storeFile.content,
+        path: `${this.apiSlug}/${storeResult.store.path}`,
+        content: storeResult.store.content,
       });
+      if (storeResult.schemas) {
+        files.push({
+          path: `${this.apiSlug}/${storeResult.schemas.path}`,
+          content: storeResult.schemas.content,
+        });
+      }
     }
 
     return files;

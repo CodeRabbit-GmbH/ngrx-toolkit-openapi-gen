@@ -1,0 +1,51 @@
+openapi: 3.0.3
+info:
+  title: Example API
+  version: 1.0.0-SNAPSHOT
+
+paths:
+  /account/details:
+    get:
+      summary: Get account details
+      operationId: accountDetails
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-z0-9]{40}$'
+      responses:
+        200:
+          description: Operation Successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountDetailsDto"
+        404:
+          description: Account Not Found
+
+components:
+  schemas:
+    TYPE_UUID:
+      type: string
+      format: uuid
+
+    RoleEnum:
+      type: string
+      enum:
+        - "superadmin"
+        - "admin"
+        - "user"
+
+    AccountDetailsDto:
+      type: object
+      properties:
+        accountId:
+          $ref: "#/components/schemas/TYPE_UUID"
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/RoleEnum"
+      required:
+        - accountId

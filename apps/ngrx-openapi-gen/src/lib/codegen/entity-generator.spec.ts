@@ -7,6 +7,7 @@ describe('EntityGenerator', () => {
   const flightEntity: EntitySpec = {
     name: 'Flight',
     schemaRef: '#/components/schemas/Flight',
+    kind: 'object',
     primaryKey: 'id',
     properties: [
       { name: 'id', schema: { type: 'string' }, optional: false },
@@ -28,6 +29,7 @@ describe('EntityGenerator', () => {
   const bookingEntity: EntitySpec = {
     name: 'Booking',
     schemaRef: '#/components/schemas/Booking',
+    kind: 'object',
     primaryKey: 'id',
     properties: [
       { name: 'id', schema: { type: 'string' }, optional: false },
@@ -38,6 +40,25 @@ describe('EntityGenerator', () => {
         optional: true,
       },
     ],
+  };
+
+  const typeUuidEntity: EntitySpec = {
+    name: 'TYPE_UUID',
+    schemaRef: '#/components/schemas/TYPE_UUID',
+    kind: 'type-alias',
+    properties: [],
+    underlyingSchema: { type: 'string', format: 'uuid' },
+  };
+
+  const roleEnumEntity: EntitySpec = {
+    name: 'RoleEnum',
+    schemaRef: '#/components/schemas/RoleEnum',
+    kind: 'enum',
+    properties: [],
+    underlyingSchema: {
+      type: 'string',
+      enum: ['superadmin', 'admin', 'user'],
+    },
   };
 
   const flightDomain: DomainSpec = {
@@ -149,6 +170,48 @@ describe('EntityGenerator', () => {
         domainPath: 'booking',
         entitySlug: 'booking',
       });
+    });
+  });
+
+  describe('type alias and enum generation', () => {
+    it('generates type alias for primitive type', () => {
+      const result = generator.generateEntity(
+        typeUuidEntity,
+        'account',
+        entityIndex
+      );
+      expect(result.content).toContain('export type TypeUuidModel = string;');
+      expect(result.path).toBe('account/entities/type-uuid.model.ts');
+    });
+
+    it('generates type alias for enum', () => {
+      const result = generator.generateEntity(
+        roleEnumEntity,
+        'account',
+        entityIndex
+      );
+      expect(result.content).toContain(
+        "export type RoleEnumModel = 'superadmin' | 'admin' | 'user';"
+      );
+      expect(result.path).toBe('account/entities/role-enum.model.ts');
+    });
+
+    it('does not include primary key for type aliases', () => {
+      const result = generator.generateEntity(
+        typeUuidEntity,
+        'account',
+        entityIndex
+      );
+      expect(result.content).not.toContain('PRIMARY_KEY');
+    });
+
+    it('does not include primary key for enums', () => {
+      const result = generator.generateEntity(
+        roleEnumEntity,
+        'account',
+        entityIndex
+      );
+      expect(result.content).not.toContain('PRIMARY_KEY');
     });
   });
 });

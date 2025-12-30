@@ -1,5 +1,5 @@
 import { OpenAPIV3 } from 'openapi-types';
-import { constantCase } from 'change-case';
+import { constantCase, pascalCase } from 'change-case';
 import {
   ApiSpec,
   ApiSpecOptions,
@@ -44,15 +44,10 @@ class DomainBuilder {
   constructor(readonly name: string) {}
 
   addOperation(operation: OperationSpec): void {
-    if (operation.kind === 'collection' && operation.entity) {
-      const collectionKey = `collection:${operation.entity.name}`;
-      if (this.operationKeys.has(collectionKey)) return;
-      this.operationKeys.add(collectionKey);
-    } else {
-      const key = `${operation.method}:${operation.path}`;
-      if (this.operationKeys.has(key)) return;
-      this.operationKeys.add(key);
-    }
+    const key =
+      operation.operationId ?? `${operation.method}:${operation.path}`;
+    if (this.operationKeys.has(key)) return;
+    this.operationKeys.add(key);
     this.operations.push(operation);
   }
 
@@ -158,6 +153,8 @@ export class OpenApiParser {
         const entitySpec = this.buildEntitySpec(descriptor.schemaName);
         if (entitySpec) {
           builder.addEntity(entitySpec);
+          // Recursively add all referenced schemas
+          this.addReferencedEntities(descriptor.schemaName, builder);
         }
       }
 
@@ -169,6 +166,8 @@ export class OpenApiParser {
           const requestBodyEntity = this.buildEntitySpec(requestBodyName);
           if (requestBodyEntity) {
             builder.addEntity(requestBodyEntity);
+            // Recursively add all referenced schemas
+            this.addReferencedEntities(requestBodyName, builder);
           }
         }
       }
@@ -190,7 +189,7 @@ export class OpenApiParser {
       .filter((s) => s.length > 0 && !s.startsWith('{'));
     if (segments.length > 0) {
       const segment = segments[0];
-      return [segment.charAt(0).toUpperCase() + segment.slice(1)];
+      return [pascalCase(segment)];
     }
 
     return ['Default'];
@@ -381,16 +380,43 @@ export class OpenApiParser {
     const schema = this.schemaResolver.getSchemaObject(schemaName);
     if (!schema) return undefined;
 
+    const kind = this.schemaResolver.getSchemaKind(schema);
     const properties: PropertySpec[] =
-      this.schemaResolver.buildPropertySpecs(schema);
+      kind === 'object' ? this.schemaResolver.buildPropertySpecs(schema) : [];
 
     return {
       name: schemaName,
       schemaRef: `#/components/schemas/${schemaName}`,
-      primaryKey: this.schemaResolver.inferPrimaryKey(schemaName),
+      kind,
+      primaryKey:
+        kind === 'object'
+          ? this.schemaResolver.inferPrimaryKey(schemaName)
+          : undefined,
       properties,
       description: schema.description,
+      underlyingSchema: kind !== 'object' ? schema : undefined,
     };
+  }
+
+  /**
+   * Recursively adds all schemas referenced by the given schema name to the domain builder.
+   */
+  private addReferencedEntities(
+    schemaName: string,
+    builder: DomainBuilder
+  ): void {
+    const schema = this.schemaResolver.getSchemaObject(schemaName);
+    if (!schema) return;
+
+    const referencedNames =
+      this.schemaResolver.collectReferencedSchemas(schema);
+
+    for (const refName of referencedNames) {
+      const refEntitySpec = this.buildEntitySpec(refName);
+      if (refEntitySpec) {
+        builder.addEntity(refEntitySpec);
+      }
+    }
   }
 
   private collectSuccessStatusCodes(

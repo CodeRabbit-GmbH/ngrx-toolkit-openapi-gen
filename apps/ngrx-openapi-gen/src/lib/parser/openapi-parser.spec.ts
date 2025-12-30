@@ -14,6 +14,84 @@ async function loadFixture(name: string): Promise<OpenApiDocument> {
 describe('OpenApiParser', () => {
   const parser = new OpenApiParser();
 
+  describe('tag inference from path', () => {
+    it('converts kebab-case paths to PascalCase tags', () => {
+      const doc: OpenApiDocument = {
+        openapi: '3.0.0',
+        info: { title: 'Test', version: '1.0.0' },
+        paths: {
+          '/user-accounts': {
+            get: {
+              responses: {
+                '200': {
+                  description: 'Success',
+                  content: {
+                    'application/json': {
+                      schema: { type: 'array', items: { type: 'string' } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const spec = parser.parse(doc, { apiName: 'Test' });
+      expect(spec.domains[0].name).toBe('UserAccounts');
+    });
+
+    it('converts snake_case paths to PascalCase tags', () => {
+      const doc: OpenApiDocument = {
+        openapi: '3.0.0',
+        info: { title: 'Test', version: '1.0.0' },
+        paths: {
+          '/api_resources': {
+            get: {
+              responses: {
+                '200': {
+                  description: 'Success',
+                  content: {
+                    'application/json': {
+                      schema: { type: 'array', items: { type: 'string' } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const spec = parser.parse(doc, { apiName: 'Test' });
+      expect(spec.domains[0].name).toBe('ApiResources');
+    });
+
+    it('uses explicit tags when provided', () => {
+      const doc: OpenApiDocument = {
+        openapi: '3.0.0',
+        info: { title: 'Test', version: '1.0.0' },
+        paths: {
+          '/some-path': {
+            get: {
+              tags: ['MyCustomTag'],
+              responses: {
+                '200': {
+                  description: 'Success',
+                  content: {
+                    'application/json': {
+                      schema: { type: 'array', items: { type: 'string' } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const spec = parser.parse(doc, { apiName: 'Test' });
+      expect(spec.domains[0].name).toBe('MyCustomTag');
+    });
+  });
+
   describe('primitives.yaml', () => {
     let doc: OpenApiDocument;
     let spec: ApiSpec;
@@ -255,6 +333,98 @@ describe('OpenApiParser', () => {
         (e) => e.name === 'Flight'
       );
       expect(flightEntity?.primaryKey).toBe('id');
+    });
+  });
+
+  describe('component-refs.yaml (referenced schemas)', () => {
+    let doc: OpenApiDocument;
+    let spec: ApiSpec;
+
+    beforeAll(async () => {
+      doc = await loadFixture('component-refs.yaml');
+      spec = parser.parse(doc, { apiName: 'AccountApi' });
+    });
+
+    it('creates domain from path', () => {
+      expect(spec.domains).toHaveLength(1);
+      expect(spec.domains[0].name).toBe('Account');
+    });
+
+    it('discovers all three schemas as entities', () => {
+      const domain = spec.domains[0];
+      const entityNames = domain.entities.map((e) => e.name);
+
+      expect(entityNames).toContain('AccountDetailsDto');
+      expect(entityNames).toContain('TYPE_UUID');
+      expect(entityNames).toContain('RoleEnum');
+    });
+
+    it('classifies AccountDetailsDto as object kind', () => {
+      const domain = spec.domains[0];
+      const entity = domain.entities.find(
+        (e) => e.name === 'AccountDetailsDto'
+      );
+
+      expect(entity).toBeDefined();
+      expect(entity?.kind).toBe('object');
+      expect(entity?.properties).toHaveLength(2);
+    });
+
+    it('classifies TYPE_UUID as type-alias kind', () => {
+      const domain = spec.domains[0];
+      const entity = domain.entities.find((e) => e.name === 'TYPE_UUID');
+
+      expect(entity).toBeDefined();
+      expect(entity?.kind).toBe('type-alias');
+      expect(entity?.properties).toHaveLength(0);
+      expect(entity?.underlyingSchema).toBeDefined();
+
+      const schema = entity?.underlyingSchema as OpenAPIV3.SchemaObject;
+      expect(schema.type).toBe('string');
+      expect(schema.format).toBe('uuid');
+    });
+
+    it('classifies RoleEnum as enum kind', () => {
+      const domain = spec.domains[0];
+      const entity = domain.entities.find((e) => e.name === 'RoleEnum');
+
+      expect(entity).toBeDefined();
+      expect(entity?.kind).toBe('enum');
+      expect(entity?.properties).toHaveLength(0);
+      expect(entity?.underlyingSchema).toBeDefined();
+
+      const schema = entity?.underlyingSchema as OpenAPIV3.SchemaObject;
+      expect(schema.enum).toContain('superadmin');
+      expect(schema.enum).toContain('admin');
+      expect(schema.enum).toContain('user');
+    });
+
+    it('AccountDetailsDto has $ref properties to TYPE_UUID and RoleEnum', () => {
+      const domain = spec.domains[0];
+      const entity = domain.entities.find(
+        (e) => e.name === 'AccountDetailsDto'
+      );
+
+      const accountIdProp = entity?.properties.find(
+        (p) => p.name === 'accountId'
+      );
+      expect(isReference(accountIdProp!.schema)).toBe(true);
+      if (isReference(accountIdProp!.schema)) {
+        expect(accountIdProp!.schema.$ref).toBe(
+          '#/components/schemas/TYPE_UUID'
+        );
+      }
+
+      const rolesProp = entity?.properties.find((p) => p.name === 'roles');
+      expect(isReference(rolesProp!.schema)).toBe(false);
+      const rolesSchema = rolesProp!.schema as OpenAPIV3.SchemaObject;
+      expect(isArraySchema(rolesSchema)).toBe(true);
+      if (isArraySchema(rolesSchema) && rolesSchema.items) {
+        expect(isReference(rolesSchema.items)).toBe(true);
+        if (isReference(rolesSchema.items)) {
+          expect(rolesSchema.items.$ref).toBe('#/components/schemas/RoleEnum');
+        }
+      }
     });
   });
 });

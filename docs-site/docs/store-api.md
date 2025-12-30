@@ -4,6 +4,23 @@ sidebar_position: 6
 
 # Generated Store API
 
+## Generated Exports
+
+Each domain generates two exports:
+
+| Export | Type | Usage |
+|--------|------|-------|
+| `withTasks()` | Feature function | Compose into custom stores |
+| `TaskStore` | Standalone store | Use directly via `inject()` |
+
+```typescript
+// task.store.ts
+export function withTasks<_>() { return signalStoreFeature(...); }
+export const TaskStore = signalStore({ providedIn: 'root' }, withTasks());
+```
+
+See [Store Feature Composition](/docs/customization#store-feature-composition) for composition examples.
+
 ## Collection Signals
 
 For `GET /api/tasks` returning an array:
@@ -108,6 +125,8 @@ await store.createTask({ title: 'Task' });
 
 | Feature | Signal Pattern |
 |---------|----------------|
+| Store | `{Name}Store` |
+| Feature | `with{Names}()` (pluralized) |
 | Collection | `{name}Value`, `{name}IsLoading`, `{name}Error` |
 | Params | `{name}Params`, `set{Name}Params` |
 | Detail | `selected{Name}Id`, `{name}DetailValue`, `select{Name}` |

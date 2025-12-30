@@ -1,8 +1,7 @@
 import { pascalCase, camelCase } from 'change-case';
 import { OperationSpec } from '../../../spec';
 import { ObjectProperty, BuilderContext } from '../types';
-import { pluralize } from '../../utils';
-import { buildUrlExpression, deriveResourceNameFromPath } from '../helpers';
+import { buildCollectionKey, buildUrlExpression } from '../helpers';
 import { createWriter } from './writer-utils';
 
 function writeCollectionResourceWithParams(
@@ -70,18 +69,14 @@ export function buildCollectionResource(
   hasParams: boolean,
   ctx: BuilderContext
 ): ObjectProperty | null {
-  let resourceKey: string;
+  const resourceKey = buildCollectionKey(op, ctx);
   let typeString: string;
   let schemaName: string | undefined;
 
   if (op.entity) {
-    resourceKey = camelCase(pluralize(op.entity.name));
     typeString = `${pascalCase(op.entity.name)}${ctx.modelSuffix}[]`;
     schemaName = `${pascalCase(op.entity.name)}${ctx.modelSuffix}Schema`;
   } else if (op.responseSchema) {
-    resourceKey = camelCase(
-      op.operationId || deriveResourceNameFromPath(op.path)
-    );
     typeString = ctx.renderType(op.responseSchema);
   } else {
     return null;
@@ -125,11 +120,14 @@ export function buildDetailResource(
   const schemaName = `${entityName}${ctx.modelSuffix}Schema`;
   const resourceKey = `${entityNameCamel}Detail`;
   const selectedIdKey = `selected${entityName}Id`;
-  const idParam = op.pathParams[0];
-  const urlPath = op.path.replace(
-    `{${idParam?.name || 'id'}}`,
-    `\${store.${selectedIdKey}()}`
-  );
+  const selectedParamsKey = `selected${entityName}Params`;
+  const hasMultiplePathParams = op.pathParams.length > 1;
+  const urlPath = hasMultiplePathParams
+    ? buildUrlExpression(op.path, op.pathParams, 'params')
+    : op.path.replace(
+        `{${op.pathParams[0]?.name || 'id'}}`,
+        `\${store.${selectedIdKey}()}`
+      );
 
   const writer = createWriter();
 
@@ -137,8 +135,13 @@ export function buildDetailResource(
     writer.write(`httpResource<${modelName} | undefined>(() => {`);
     writer.newLine();
     writer.indent(() => {
-      writer.writeLine(`const id = store.${selectedIdKey}();`);
-      writer.writeLine('if (id === undefined) return undefined;');
+      if (hasMultiplePathParams) {
+        writer.writeLine(`const params = store.${selectedParamsKey}();`);
+        writer.writeLine('if (!params) return undefined;');
+      } else {
+        writer.writeLine(`const id = store.${selectedIdKey}();`);
+        writer.writeLine('if (id === undefined) return undefined;');
+      }
       writer.writeLine('return {');
       writer.indent(() => {
         writer.writeLine(`url: \`\${store._baseUrl}${urlPath}\`,`);
@@ -153,12 +156,24 @@ export function buildDetailResource(
     writer
       .writeLine(`httpResource<${modelName} | undefined>(`)
       .indent(() => {
-        writer.write(`() => store.${selectedIdKey}() === undefined`);
-        writer.newLine();
-        writer.indent(() => {
-          writer.writeLine('? undefined');
-          writer.write(`: \`\${store._baseUrl}${urlPath}\``);
-        });
+        if (hasMultiplePathParams) {
+          writer.write(`() => {`);
+          writer.newLine();
+          writer.indent(() => {
+            writer.writeLine(`const params = store.${selectedParamsKey}();`);
+            writer.writeLine('if (!params) return undefined;');
+            writer.writeLine(`return \`\${store._baseUrl}${urlPath}\`;`);
+          });
+          writer.newLine();
+          writer.write(`}`);
+        } else {
+          writer.write(`() => store.${selectedIdKey}() === undefined`);
+          writer.newLine();
+          writer.indent(() => {
+            writer.writeLine('? undefined');
+            writer.write(`: \`\${store._baseUrl}${urlPath}\``);
+          });
+        }
       })
       .newLine()
       .write(')');

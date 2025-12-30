@@ -16,6 +16,8 @@ export type OperationKind = 'collection' | 'detail' | 'mutation';
 
 export type ParamLocation = 'path' | 'query' | 'header' | 'cookie';
 
+export type SchemaKind = 'object' | 'enum' | 'type-alias';
+
 export interface EntityRef {
   readonly name: string;
   readonly schemaRef: string;
@@ -39,9 +41,12 @@ export interface ParamSpec {
 export interface EntitySpec {
   readonly name: string;
   readonly schemaRef: string;
+  readonly kind: SchemaKind;
   readonly primaryKey?: string;
   readonly properties: readonly PropertySpec[];
   readonly description?: string;
+  /** For type-alias kind: the underlying schema to render as a type */
+  readonly underlyingSchema?: SchemaOrRef;
 }
 
 export interface OperationSpec {

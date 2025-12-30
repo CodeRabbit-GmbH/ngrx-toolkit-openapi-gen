@@ -132,10 +132,7 @@ export class TypeRenderer {
     const required = new Set(schema.required ?? []);
 
     if (!properties || Object.keys(properties).length === 0) {
-      if (additionalProps === undefined) {
-        return 'Record<string, unknown>';
-      }
-      if (additionalProps === true) {
+      if (additionalProps === undefined || additionalProps === true) {
         return 'Record<string, unknown>';
       }
       if (additionalProps === false) {

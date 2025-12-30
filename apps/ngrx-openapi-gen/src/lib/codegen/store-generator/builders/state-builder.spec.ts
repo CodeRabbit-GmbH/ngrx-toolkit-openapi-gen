@@ -8,9 +8,15 @@ describe('state-builder', () => {
     modelSuffix: 'Model',
     zodValidation: false,
     preferEntityNames: false,
+    sharedEntities: false,
+    duplicateCollectionEntities: new Set(),
     renderType: (schema: unknown) => {
       const s = schema as { type?: string };
       return s?.type === 'number' ? 'number' : 'string';
+    },
+    renderZod: (schema: unknown) => {
+      const s = schema as { type?: string };
+      return s?.type === 'number' ? 'z.number()' : 'z.string()';
     },
   };
 
@@ -97,50 +103,6 @@ describe('state-builder', () => {
 
       const result = buildStateProperties([opWithoutEntity], [], mockContext);
       expect(result).toEqual([]);
-    });
-
-    it('deduplicates detail entities', () => {
-      const detailOp1: OperationSpec = {
-        operationId: 'getFlight',
-        method: 'get',
-        path: '/api/flights/{id}',
-        kind: 'detail',
-        entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-        pathParams: [
-          {
-            name: 'id',
-            location: 'path',
-            schema: { type: 'string' },
-            required: true,
-          },
-        ],
-        queryParams: [],
-        successStatusCodes: ['200'],
-      };
-      const detailOp2: OperationSpec = {
-        operationId: 'getFlightDetails',
-        method: 'get',
-        path: '/api/flights/{id}/details',
-        kind: 'detail',
-        entity: { name: 'Flight', schemaRef: '#/components/schemas/Flight' },
-        pathParams: [
-          {
-            name: 'id',
-            location: 'path',
-            schema: { type: 'string' },
-            required: true,
-          },
-        ],
-        queryParams: [],
-        successStatusCodes: ['200'],
-      };
-
-      const result = buildStateProperties(
-        [],
-        [detailOp1, detailOp2],
-        mockContext
-      );
-      expect(result).toHaveLength(1);
     });
   });
 

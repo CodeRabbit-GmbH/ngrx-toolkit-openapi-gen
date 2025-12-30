@@ -12,12 +12,21 @@ describe('resource-builder', () => {
     modelSuffix: 'Model',
     zodValidation: false,
     preferEntityNames: false,
+    sharedEntities: false,
+    duplicateCollectionEntities: new Set(),
     renderType: (schema: unknown) => {
       const s = schema as { type?: string; items?: { type?: string } };
       if (s?.type === 'array' && s.items?.type === 'string') {
         return 'Array<string>';
       }
       return s?.type || 'unknown';
+    },
+    renderZod: (schema: unknown) => {
+      const s = schema as { type?: string; items?: { type?: string } };
+      if (s?.type === 'array' && s.items?.type === 'string') {
+        return 'z.array(z.string())';
+      }
+      return s?.type === 'number' ? 'z.number()' : 'z.string()';
     },
   };
 

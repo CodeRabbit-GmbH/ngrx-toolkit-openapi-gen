@@ -18,11 +18,13 @@ import { formatPropertyName } from './utils';
 export interface EntityGeneratorOptions {
   modelSuffix?: string;
   zodValidation?: boolean;
+  sharedEntities?: boolean;
 }
 
 const DEFAULT_OPTIONS: Required<EntityGeneratorOptions> = {
   modelSuffix: 'Model',
   zodValidation: false,
+  sharedEntities: false,
 };
 
 export interface EntityIndex {
@@ -64,12 +66,21 @@ export class EntityGenerator {
 
   generateDomainEntities(
     domain: DomainSpec,
-    entityIndex: Map<string, EntityIndex>
+    entityIndex: Map<string, EntityIndex>,
+    generatedEntities?: Set<string>
   ): GeneratedEntity[] {
     const results: GeneratedEntity[] = [];
-    const domainPath = kebabCase(domain.name);
+    const domainPath = this.options.sharedEntities
+      ? 'shared'
+      : kebabCase(domain.name);
 
     for (const entity of domain.entities) {
+      if (this.options.sharedEntities && generatedEntities) {
+        if (generatedEntities.has(entity.name)) {
+          continue;
+        }
+        generatedEntities.add(entity.name);
+      }
       const result = this.generateEntity(entity, domainPath, entityIndex);
       results.push(result);
     }
@@ -92,18 +103,28 @@ export class EntityGenerator {
       overwrite: true,
     });
 
-    if (this.options.zodValidation) {
-      this.addZodImport(sourceFile);
-      this.addModelImports(sourceFile, entity, domainPath, entityIndex);
-      this.addZodSchemaImports(sourceFile, entity, domainPath, entityIndex);
-      this.addInterface(sourceFile, typeName, entity);
-      this.addTypedZodSchema(sourceFile, schemaName, typeName, entity);
+    // Handle type-alias and enum kinds differently
+    if (entity.kind === 'type-alias' || entity.kind === 'enum') {
+      this.addTypeAlias(sourceFile, typeName, entity);
+      if (this.options.zodValidation) {
+        this.addZodImport(sourceFile);
+        this.addTypeAliasZodSchema(sourceFile, schemaName, typeName, entity);
+      }
     } else {
-      this.addModelImports(sourceFile, entity, domainPath, entityIndex);
-      this.addInterface(sourceFile, typeName, entity);
-    }
+      // Object kind - existing behavior
+      if (this.options.zodValidation) {
+        this.addZodImport(sourceFile);
+        this.addModelImports(sourceFile, entity, domainPath, entityIndex);
+        this.addZodSchemaImports(sourceFile, entity, domainPath, entityIndex);
+        this.addInterface(sourceFile, typeName, entity);
+        this.addTypedZodSchema(sourceFile, schemaName, typeName, entity);
+      } else {
+        this.addModelImports(sourceFile, entity, domainPath, entityIndex);
+        this.addInterface(sourceFile, typeName, entity);
+      }
 
-    this.addPrimaryKeyConstant(sourceFile, constantName, entity.primaryKey);
+      this.addPrimaryKeyConstant(sourceFile, constantName, entity.primaryKey);
+    }
 
     sourceFile.formatText();
     return {
@@ -320,15 +341,55 @@ export class EntityGenerator {
       ],
     });
   }
+
+  private addTypeAlias(
+    sourceFile: SourceFile,
+    typeName: string,
+    entity: EntitySpec
+  ): void {
+    const typeValue = entity.underlyingSchema
+      ? this.typeRenderer.render(entity.underlyingSchema)
+      : 'unknown';
+
+    sourceFile.addTypeAlias({
+      name: typeName,
+      isExported: true,
+      type: typeValue,
+    });
+  }
+
+  private addTypeAliasZodSchema(
+    sourceFile: SourceFile,
+    schemaName: string,
+    typeName: string,
+    entity: EntitySpec
+  ): void {
+    const zodType = entity.underlyingSchema
+      ? this.zodRenderer.render(entity.underlyingSchema)
+      : 'z.unknown()';
+
+    sourceFile.addVariableStatement({
+      isExported: true,
+      declarationKind: VariableDeclarationKind.Const,
+      declarations: [
+        {
+          name: schemaName,
+          type: `z.ZodType<${typeName}>`,
+          initializer: zodType,
+        },
+      ],
+    });
+  }
 }
 
 export function buildEntityIndex(
-  domains: readonly DomainSpec[]
+  domains: readonly DomainSpec[],
+  sharedEntities = false
 ): Map<string, EntityIndex> {
   const index = new Map<string, EntityIndex>();
 
   for (const domain of domains) {
-    const domainPath = kebabCase(domain.name);
+    const domainPath = sharedEntities ? 'shared' : kebabCase(domain.name);
     for (const entity of domain.entities) {
       index.set(entity.name, {
         domainPath,

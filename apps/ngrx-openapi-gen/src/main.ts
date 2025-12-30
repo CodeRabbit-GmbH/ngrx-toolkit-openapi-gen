@@ -17,6 +17,7 @@ interface CliOptions {
   debugSpec?: string;
   zod?: boolean;
   preferEntityNames?: boolean;
+  sharedEntities?: boolean;
 }
 
 interface CliIo {
@@ -65,6 +66,10 @@ export async function runCli(
       '--prefer-entity-names',
       'Use entity-based mutation names (createEntity, updateEntity) instead of operationId.'
     )
+    .option(
+      '--shared-entities',
+      'Emit all generated models into a shared/entities folder instead of per-domain.'
+    )
     .option('--dry-run', 'Preview generated files without writing to disk.')
     .option(
       '--debug-spec <path>',
@@ -91,12 +96,14 @@ export async function runCli(
     const apiName = determineApiName(parsedOptions, document, cwd);
     const zodValidation = parsedOptions.zod ?? false;
     const preferEntityNames = parsedOptions.preferEntityNames ?? false;
+    const sharedEntities = parsedOptions.sharedEntities ?? false;
 
     const generator = new Generator({
       apiName,
       basePathToken: parsedOptions.basePathToken,
       zodValidation,
       preferEntityNames,
+      sharedEntities,
     });
 
     const spec = generator.parseDocument(document);

@@ -1,7 +1,12 @@
-import { pascalCase, camelCase } from 'change-case';
+import { pascalCase } from 'change-case';
 import { OperationSpec } from '../../../spec';
 import { ObjectProperty, BuilderContext } from '../types';
-import { pluralize } from '../../utils';
+import { getParamSchemaName } from './params-schema-builder';
+import {
+  buildCollectionKey,
+  renderParamFields,
+  uniqueDetailOps,
+} from '../helpers';
 
 export function buildWithMethods(
   collectionsWithParams: readonly OperationSpec[],
@@ -12,46 +17,63 @@ export function buildWithMethods(
 
   for (const op of collectionsWithParams) {
     if (!op.entity) continue;
-    const resourceKey = camelCase(pluralize(op.entity.name));
-    const paramFields = op.queryParams
-      .map(
-        (p) =>
-          `${camelCase(p.name)}${p.required ? '' : '?'}: ${ctx.renderType(
-            p.schema
-          )}`
-      )
-      .join('; ');
-    const methodName = `set${pascalCase(pluralize(op.entity.name))}Params`;
+    const resourceKey = buildCollectionKey(op, ctx);
+    const paramFields = renderParamFields(op.queryParams, ctx.renderType);
+    const methodName = `set${pascalCase(resourceKey)}Params`;
+    const schemaName = getParamSchemaName(
+      op.entity.name,
+      false,
+      undefined,
+      resourceKey
+    );
+    const validation = ctx.zodValidation
+      ? `${schemaName}.parse(params);\n      `
+      : '';
 
     methods.push({
       name: methodName,
       value: `(params: { ${paramFields} }): void {
-      patchState(store, { ${resourceKey}Params: params });
+      ${validation}patchState(store, { ${resourceKey}Params: params });
     }`,
     });
   }
 
-  const addedDetailEntities = new Set<string>();
-  for (const op of detailOps) {
-    if (!op.entity || addedDetailEntities.has(op.entity.name)) continue;
-    addedDetailEntities.add(op.entity.name);
-
+  for (const op of uniqueDetailOps(detailOps)) {
     const entityName = pascalCase(op.entity.name);
-    const idParam = op.pathParams[0];
-    const idType = idParam ? ctx.renderType(idParam.schema) : 'string';
 
-    methods.push({
-      name: `select${entityName}`,
-      value: `(id: ${idType} | undefined): void {
-      patchState(store, { selected${entityName}Id: id });
+    if (op.pathParams.length > 1) {
+      const paramsType = renderParamFields(op.pathParams, ctx.renderType);
+      methods.push({
+        name: `select${entityName}`,
+        value: `(params: { ${paramsType} } | undefined): void {
+      patchState(store, { selected${entityName}Params: params });
     }`,
-    });
+      });
+    } else {
+      const idParam = op.pathParams[0] ?? op.queryParams[0];
+      const idType = idParam ? ctx.renderType(idParam.schema) : 'string';
+      const schemaName = getParamSchemaName(
+        op.entity.name,
+        true,
+        op.pathParams.length > 0
+      );
+      const validation =
+        ctx.zodValidation && idParam
+          ? `if (id !== undefined) { ${schemaName}.parse(id); }\n      `
+          : '';
+
+      methods.push({
+        name: `select${entityName}`,
+        value: `(id: ${idType} | undefined): void {
+      ${validation}patchState(store, { selected${entityName}Id: id });
+    }`,
+      });
+    }
   }
 
   const methodsStr = methods
     .map((m) => `    ${m.name}${m.value}`)
     .join(',\n\n');
-
   return `withMethods((store) => ({
 ${methodsStr}
   }))`;

@@ -24,7 +24,7 @@ function buildEntityBasedName(op: OperationSpec): string | undefined {
 }
 
 function buildPathBasedName(op: OperationSpec): string {
-  return camelCase(`${op.method}_${op.path.replace(/[{}\/]/g, '_')}`);
+  return camelCase(`${op.method}_${op.path.replace(/[{}/]/g, '_')}`);
 }
 
 function buildOperationIdName(op: OperationSpec): string {
