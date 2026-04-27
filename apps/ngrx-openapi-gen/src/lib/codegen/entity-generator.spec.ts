@@ -61,6 +61,36 @@ describe('EntityGenerator', () => {
     },
   };
 
+  const itemEntity: EntitySpec = {
+    name: 'Item',
+    schemaRef: '#/components/schemas/Item',
+    kind: 'object',
+    primaryKey: 'id',
+    properties: [
+      { name: 'id', schema: { type: 'string' }, optional: false },
+      { name: 'value', schema: { type: 'number' }, optional: true },
+    ],
+  };
+
+  const itemListEntity: EntitySpec = {
+    name: 'ItemList',
+    schemaRef: '#/components/schemas/ItemList',
+    kind: 'type-alias',
+    properties: [],
+    underlyingSchema: {
+      type: 'array',
+      items: { $ref: '#/components/schemas/Item' },
+    },
+  };
+
+  const aliasOfRefEntity: EntitySpec = {
+    name: 'FlightAlias',
+    schemaRef: '#/components/schemas/FlightAlias',
+    kind: 'type-alias',
+    properties: [],
+    underlyingSchema: { $ref: '#/components/schemas/Flight' },
+  };
+
   const flightDomain: DomainSpec = {
     name: 'Flight',
     entities: [flightEntity],
@@ -73,7 +103,17 @@ describe('EntityGenerator', () => {
     operations: [],
   };
 
-  const entityIndex = buildEntityIndex([flightDomain, bookingDomain]);
+  const thingDomain: DomainSpec = {
+    name: 'Thing',
+    entities: [itemEntity, itemListEntity, aliasOfRefEntity],
+    operations: [],
+  };
+
+  const entityIndex = buildEntityIndex([
+    flightDomain,
+    bookingDomain,
+    thingDomain,
+  ]);
 
   describe('generateEntity', () => {
     it('generates interface with correct name', () => {
@@ -212,6 +252,49 @@ describe('EntityGenerator', () => {
         entityIndex
       );
       expect(result.content).not.toContain('PRIMARY_KEY');
+    });
+
+    it('imports referenced model for array type-alias', () => {
+      const result = generator.generateEntity(
+        itemListEntity,
+        'thing',
+        entityIndex
+      );
+      expect(result.content).toContain(
+        "import type { ItemModel } from './item.model';"
+      );
+      expect(result.content).toContain(
+        'export type ItemListModel = Array<ItemModel>;'
+      );
+    });
+
+    it('imports referenced model for $ref-only type-alias', () => {
+      const result = generator.generateEntity(
+        aliasOfRefEntity,
+        'thing',
+        entityIndex
+      );
+      expect(result.content).toContain(
+        "import type { FlightModel } from '../../flight/entities/flight.model';"
+      );
+      expect(result.content).toContain(
+        'export type FlightAliasModel = FlightModel;'
+      );
+    });
+
+    it('imports zod schemas for array type-alias when zodValidation is on', () => {
+      const zodGenerator = new EntityGenerator({ zodValidation: true });
+      const result = zodGenerator.generateEntity(
+        itemListEntity,
+        'thing',
+        entityIndex
+      );
+      expect(result.content).toContain(
+        "import type { ItemModel } from './item.model';"
+      );
+      expect(result.content).toContain(
+        "import { ItemModelSchema } from './item.model';"
+      );
     });
   });
 });

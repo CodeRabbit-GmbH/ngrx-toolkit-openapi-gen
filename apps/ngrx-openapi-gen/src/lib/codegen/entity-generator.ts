@@ -105,9 +105,13 @@ export class EntityGenerator {
 
     // Handle type-alias and enum kinds differently
     if (entity.kind === 'type-alias' || entity.kind === 'enum') {
-      this.addTypeAlias(sourceFile, typeName, entity);
+      this.addModelImports(sourceFile, entity, domainPath, entityIndex);
       if (this.options.zodValidation) {
         this.addZodImport(sourceFile);
+        this.addZodSchemaImports(sourceFile, entity, domainPath, entityIndex);
+      }
+      this.addTypeAlias(sourceFile, typeName, entity);
+      if (this.options.zodValidation) {
         this.addTypeAliasZodSchema(sourceFile, schemaName, typeName, entity);
       }
     } else {
@@ -133,6 +137,32 @@ export class EntityGenerator {
     };
   }
 
+  private collectEntityRefs(
+    entity: EntitySpec,
+    selfModelName: string
+  ): Set<string> {
+    const referencedModels = new Set<string>();
+
+    const addRefs = (refs: Set<string>): void => {
+      for (const ref of refs) {
+        const modelName = `${pascalCase(ref)}${this.options.modelSuffix}`;
+        if (modelName !== selfModelName) {
+          referencedModels.add(ref);
+        }
+      }
+    };
+
+    for (const prop of entity.properties) {
+      addRefs(collectModelRefs(prop.schema));
+    }
+
+    if (entity.underlyingSchema) {
+      addRefs(collectModelRefs(entity.underlyingSchema));
+    }
+
+    return referencedModels;
+  }
+
   private addModelImports(
     sourceFile: SourceFile,
     entity: EntitySpec,
@@ -142,17 +172,7 @@ export class EntityGenerator {
     const selfModelName = `${pascalCase(entity.name)}${
       this.options.modelSuffix
     }`;
-    const referencedModels = new Set<string>();
-
-    for (const prop of entity.properties) {
-      const refs = collectModelRefs(prop.schema);
-      for (const ref of refs) {
-        const modelName = `${pascalCase(ref)}${this.options.modelSuffix}`;
-        if (modelName !== selfModelName) {
-          referencedModels.add(ref);
-        }
-      }
-    }
+    const referencedModels = this.collectEntityRefs(entity, selfModelName);
 
     for (const refName of referencedModels) {
       const target = entityIndex.get(refName);
@@ -241,22 +261,10 @@ export class EntityGenerator {
     sourceDomainPath: string,
     entityIndex: Map<string, EntityIndex>
   ): void {
-    const selfSchemaName = `${pascalCase(entity.name)}${
+    const selfModelName = `${pascalCase(entity.name)}${
       this.options.modelSuffix
-    }Schema`;
-    const referencedModels = new Set<string>();
-
-    for (const prop of entity.properties) {
-      const refs = collectModelRefs(prop.schema);
-      for (const ref of refs) {
-        const schemaName = `${pascalCase(ref)}${
-          this.options.modelSuffix
-        }Schema`;
-        if (schemaName !== selfSchemaName) {
-          referencedModels.add(ref);
-        }
-      }
-    }
+    }`;
+    const referencedModels = this.collectEntityRefs(entity, selfModelName);
 
     for (const refName of referencedModels) {
       const target = entityIndex.get(refName);
